@@ -6,7 +6,7 @@
 
 struct scheduler {
     struct stack *tasks;
-    int qlen; //nombre max de tâches dans la pile
+    int qlen; // Maximum number of tasks
     int nthreads;
     int nb_threads_working;
     pthread_mutex_t mutex;
@@ -20,8 +20,8 @@ struct args_pack {
 };
 
 
+// TODO ajouter n threads en le stockant dans le pthread_t, modifier dans sched_init et le join
 void slippy_time(void *args) {
-
     struct scheduler *s = ((struct args_pack *) args)->s;
 
     pthread_mutex_lock(&s->mutex); // Lock taken to check if there is work to do
@@ -29,7 +29,8 @@ void slippy_time(void *args) {
         if (s->nb_threads_working > 0) {
             // Other threads are working so tasks might get added, we go to sleep until we get spawned
             pthread_cond_wait(&s->cond_var, &s->mutex);
-        } else {
+        }
+        else {
             pthread_mutex_unlock(&s->mutex);
             return; // No threads are working and there are no tasks left = end of threads/schedduler
         }
@@ -42,7 +43,6 @@ void slippy_time(void *args) {
     taskfunc f = w.f;
     void *closure = w.closure;
 
-
     pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
     ((void(*)())f)(closure, s); // Going to work
 
@@ -53,13 +53,12 @@ void slippy_time(void *args) {
     slippy_time(args); // When back from work go to sleep again
 }
 
-//Return -1 if failed to initialize or 1 if all the work is done
+// Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler *sched = malloc(sizeof(struct scheduler));
 
-    if (sched == NULL) {
+    if (sched == NULL)
         return -1;
-    }
 
     pthread_mutex_init(&sched->mutex, NULL);
     pthread_mutex_lock(&sched->mutex);
@@ -70,20 +69,22 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     if (sched->tasks == NULL) {
         pthread_mutex_unlock(&sched->mutex);
         return -1;
-    } else {
-        struct work w = malloc(sizeof(struct work));
+    }
+    else {
+        struct work *w = malloc(sizeof(struct work));
         if (w == NULL) {
             pthread_mutex_unlock(&sched->mutex);
             return -1;
         }
-        w.closure = closure;
-        w.f = f;
-        push(w, sched->tasks);
+        w->closure = closure;
+        w->f = f;
+        push(*w, sched->tasks);
     }
 
     if (nthreads <= 0) {
         sched->nthreads = sched_default_threads();
-    } else {
+    }
+    else {
         sched->nthreads = nthreads;
     }
     sched->qlen = qlen;
@@ -117,7 +118,9 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
 //    }
     return 1;
 }
+
 int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     //TODO add a task f on top of the stack and signal a thread to take it
+    // verify that there's isn't more than qlen tasks in the stack
     return 0;
 }

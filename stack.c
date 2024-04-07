@@ -7,42 +7,50 @@ struct stack *stack_init() {
     if (s != NULL) {
         s->size = 0;
         return s;
-    } else {
+    }
+    else {
         printf("Failed to malloc stack\n");
         return NULL;
     }
 }
+
 struct node *node_init(struct work w, struct node *next) {
     struct node *n = malloc(sizeof(struct node));
     if (n != NULL) {
         n->w = w;
         n->next = next;
         return n;
-    } else {
+    }
+    else {
         printf("Failed to malloc node\n");
         return NULL;
     }
 }
+
 int is_empty(struct stack *s) {
     return s->top == NULL;
 }
+
 int size(struct stack *s) {
     return s->size;
 }
+
 void push(struct work w, struct stack *s) {
     s->top = node_init(w, s->top);
-    if (s->top == NULL) {
+    if (s->top == NULL)
         return;
-    }
+
     s->size++;
 }
+
 struct work pop(struct stack *s) {
     if (is_empty(s)) {
-        return NULL;
-    } else {
-        struct work *res = s->top->w;
-        s->top = s->top->next;
-        s->size--;
-        return res;
+        struct work w;
+        return w;
     }
+
+    struct work res = s->top->w;
+    s->top = s->top->next;
+    s->size--;
+    return res;
 }

@@ -12,6 +12,7 @@ struct stack {
     struct node *top;
     int size;
 };
+
 struct node {
     struct work w;
     struct node *next;
