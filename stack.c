@@ -12,10 +12,10 @@ struct stack *stack_init() {
         return NULL;
     }
 }
-struct node *node_init(void *f, struct node *next) {
+struct node *node_init(struct work w, struct node *next) {
     struct node *n = malloc(sizeof(struct node));
     if (n != NULL) {
-        n->f = f;
+        n->w = w;
         n->next = next;
         return n;
     } else {
@@ -29,45 +29,20 @@ int is_empty(struct stack *s) {
 int size(struct stack *s) {
     return s->size;
 }
-void push(void *f, struct stack *s) {
-    s->top = node_init(f, s->top);
+void push(struct work w, struct stack *s) {
+    s->top = node_init(w, s->top);
+    if (s->top == NULL) {
+        return;
+    }
     s->size++;
 }
-void *pop(struct stack *s) {
+struct work pop(struct stack *s) {
     if (is_empty(s)) {
         return NULL;
     } else {
-        void *res = s->top->f;
+        struct work *res = s->top->w;
         s->top = s->top->next;
         s->size--;
         return res;
     }
-}
-void *test(void *arg) {
-    printf("IN TEST !\n");
-    return arg;
-}
-void *last_test(void *arg) {
-    printf("IN LAST TEST !\n");
-    return arg;
-}
-
-// For testing with make file call 'make test'
-int main() {
-    struct stack *st = stack_init();
-    if (st == NULL) {
-        perror("Failed stack initialization");
-        exit(1);
-    }
-
-    push(last_test, st);
-    push(test, st);
-    push(test, st);
-    printf("Size of stack after 3 push: %d\n", size(st));
-    while (!is_empty(st)) {
-        void *method = pop(st);
-        ((void(*)())method)();
-    }
-    printf("Size of stack after 3 pop: %d\n", size(st));
-    return EXIT_SUCCESS;
 }
