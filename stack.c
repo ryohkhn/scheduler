@@ -45,7 +45,7 @@ void push(struct work w, struct stack *s) {
 
 struct work pop(struct stack *s) {
     if (is_empty(s)) {
-        struct work w;
+        struct work w = {0};
         return w;
     }
 

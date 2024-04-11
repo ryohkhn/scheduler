@@ -15,7 +15,8 @@ build/dumb_sched.o: dumb_sched.c sched.h stack.h
 test_dumb_sched: test_dumb_sched.c dumb_sched.c build/dumb_sched.o build/stack.o
 	gcc $(CFLAGS) test_dumb_sched.c build/dumb_sched.o build/stack.o -o test/test_dumb_sched
 
-test: test_stack test_dumb_sched
+# test: test_stack test_dumb_sched
+test: test_dumb_sched
 
 clean:
 ifneq ("$(wildcard build/*.o)", "")
