@@ -11,7 +11,7 @@ struct scheduler {
     int nb_threads_working;
     pthread_mutex_t mutex;
     pthread_cond_t cond_var;
-    pthread_t threads;
+    pthread_t *threads;
 };
 
 struct args_pack {
@@ -20,7 +20,6 @@ struct args_pack {
 };
 
 
-// TODO ajouter n threads en le stockant dans le pthread_t, modifier dans sched_init et le join
 void slippy_time(void *args) {
     struct scheduler *s = ((struct args_pack *) args)->s;
 
@@ -87,6 +86,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     else {
         sched->nthreads = nthreads;
     }
+    sched->threads = malloc(sizeof(pthread_t) * sched->nthreads);
     sched->qlen = qlen;
     sched->nb_threads_working = 0;
 
@@ -103,19 +103,23 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     pthread_mutex_unlock(&sched->mutex);
 
     for (int i = 0; i < sched->nthreads; i++) {
-        if (0 != pthread_create(&sched->threads, NULL, ((void * (*)(void *)) slippy_time), argsPack)) {
+        if (pthread_create(&sched->threads[i], NULL, ((void * (*)(void *)) slippy_time), argsPack) != 0) {
             perror("Failed to create thread");
             return -1;
         }
     }
     void *arg = NULL;
-    if (pthread_join(sched->threads, arg) != 0) {
-        perror("Failed to join thread");
-        return -1;
+    /* if (pthread_join(sched->threads, arg) != 0) { */
+    /*     perror("Failed to join thread"); */
+    /*     return -1; */
+    /* } */
+    for (int i = 0; i < sched->nthreads; i++) {
+        if (pthread_join(sched->threads[i], arg) != 0) {
+            perror("Failed to join thread");
+            return -1;
+        }
     }
-//    for (int i = 0; i < sched->nthreads; i++) {
-//
-//    }
+    // TODO Free sched et pthread_t
     return 1;
 }
 

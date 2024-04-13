@@ -7,12 +7,19 @@ void wake_up(void *closure, struct scheduler *s) {
 }
 
 // For testing with make file call 'make test'
-int main() {
-    if (sched_init(1, 10, wake_up, NULL) == -1) {
+int main(int argc, char *argv[]) {
+    int nthreads = 1, qlen = 10;
+    // For now, first argv is nthreads and second is qlen
+    if (argc == 3) {
+        nthreads = atoi(argv[1]);
+        qlen = atoi(argv[2]);
+    }
+    if (sched_init(nthreads, qlen, wake_up, NULL) == -1) {
         perror("Failed to init scheduler");
         exit(1);
-    } else {
-        printf("Properly finished with the work\n");
     }
+    else
+        printf("Properly finished with the work\n");
+
     return EXIT_SUCCESS;
 }
