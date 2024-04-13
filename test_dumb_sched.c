@@ -6,6 +6,10 @@ void wake_up(void *closure, struct scheduler *s) {
     printf("HELLO WORLD\n");
 }
 
+void last_one(void *closure, struct scheduler *s) {
+    printf("~~BYE WORLD~~\n");
+}
+
 // For testing with make file call 'make test'
 int main(int argc, char *argv[]) {
     int nthreads = 1, qlen = 10;

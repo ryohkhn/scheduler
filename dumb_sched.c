@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 #include "sched.h"
 #include "stack.h"
 
@@ -43,6 +44,7 @@ void slippy_time(void *args) {
     void *closure = w.closure;
 
     pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
+    printf("Ca bosse dur\n");
     ((void(*)())f)(closure, s); // Going to work
 
     pthread_mutex_lock(&s->mutex);
@@ -124,7 +126,18 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
 }
 
 int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
-    //TODO add a task f on top of the stack and signal a thread to take it
-    // verify that there's isn't more than qlen tasks in the stack
-    return 0;
+    // TODO decide if we push the task or just ignore it
+    pthread_mutex_lock(&s->mutex);
+    if (size(s->tasks) >= s->qlen) {
+        errno = EAGAIN;
+        return -1;
+    }
+    struct work w = {closure, f};
+    push(w, s->tasks);
+
+    // TODO only send signal if a thread is waiting ??
+    pthread_cond_signal(&s->cond_var);
+    printf("On a signalé\n");
+    pthread_mutex_unlock(&s->mutex);
+    return 1;
 }
