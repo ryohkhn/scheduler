@@ -28,14 +28,17 @@ void slippy_time(void *args) {
     while (is_empty(s->tasks)) {
         if (s->nb_threads_working > 0) {
             // Other threads are working so tasks might get added, we go to sleep until we get spawned
+            printf("On attend un signalement\n");
+            // pthread_cond_wait will unlock the mutex until a signal is catched, then relock it for the thread that received the signal
             pthread_cond_wait(&s->cond_var, &s->mutex);
+            printf("Signalement reçu\n");
         }
         else {
             pthread_mutex_unlock(&s->mutex);
-            return; // No threads are working and there are no tasks left = end of threads/schedduler
+            return; // No threads are working and there are no tasks left = end of threads/scheduler
         }
         // We request the lock again to check if stack is empty and it was previously unlocked by pthread_cond_wait
-        pthread_mutex_lock(&s->mutex);
+        // pthread_mutex_lock(&s->mutex);
     }
 
     s->nb_threads_working++;
@@ -46,6 +49,7 @@ void slippy_time(void *args) {
     pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
     printf("Ca bosse dur\n");
     ((void(*)())f)(closure, s); // Going to work
+    printf("Fini de bosser\n");
 
     pthread_mutex_lock(&s->mutex);
     s->nb_threads_working--;
@@ -129,6 +133,7 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     // TODO decide if we push the task or just ignore it
     pthread_mutex_lock(&s->mutex);
     if (size(s->tasks) >= s->qlen) {
+        pthread_mutex_unlock(&s->mutex);
         errno = EAGAIN;
         return -1;
     }
@@ -139,5 +144,6 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     pthread_cond_signal(&s->cond_var);
     printf("On a signalé\n");
     pthread_mutex_unlock(&s->mutex);
+
     return 1;
 }
