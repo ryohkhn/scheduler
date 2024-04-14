@@ -50,7 +50,9 @@ struct work pop(struct stack *s) {
     }
 
     struct work res = s->top->w;
+    struct node* tmp = s->top;
     s->top = s->top->next;
+    free(tmp);
     s->size--;
     return res;
 }
