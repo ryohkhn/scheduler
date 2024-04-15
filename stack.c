@@ -52,7 +52,7 @@ struct work pop(struct stack *s) {
 
     struct node *n = s->top;
     struct work w = n->w;
-    s->top = n->next;
+    s->top = s->top->next;
     s->size--;
     free(n);
     return w;

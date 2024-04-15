@@ -74,7 +74,7 @@ struct work pop_top(struct deque *d) {
     struct node *n = d->top;
     struct work w = n->w;
 
-    d->top = n->next;
+    d->top = d->top->next;
     if (d->top != NULL) {
         d->top->prev = NULL;
     }
@@ -91,7 +91,7 @@ struct work pop_bottom(struct deque *d) {
     struct node *n = d->bottom;
     struct work w = n->w;
 
-    d->bottom = n->prev;
+    d->bottom = d->bottom->prev;
     if (d->bottom != NULL) {
         d->bottom->next = NULL;
     }
