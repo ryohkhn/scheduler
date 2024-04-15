@@ -7,6 +7,11 @@ struct scheduler;
 
 typedef void (*taskfunc)(void*, struct scheduler *);
 
+struct work {
+    void *closure;
+    taskfunc f;
+};
+
 static inline int
 sched_default_threads()
 {

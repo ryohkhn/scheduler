@@ -9,6 +9,11 @@ void last_test(void *closure, struct scheduler *s) {
     printf("IN LAST TEST !\n");
 }
 
+struct work new_work(void *closure, taskfunc f) {
+    struct work w = {closure, f};
+    return w;
+}
+
 // For testing with make file call 'make test'
 int main() {
     struct stack *st = stack_init();
@@ -17,13 +22,13 @@ int main() {
         exit(1);
     }
 
-    push(last_test, st);
-    push(test, st);
-    push(test, st);
+    push(new_work(NULL, last_test), st);
+    push(new_work(NULL, test), st);
+    push(new_work(NULL, test), st);
     printf("Size of stack after 3 push: %d\n", size(st));
     while (!is_empty(st)) {
-        void *method = pop(st);
-        ((void(*)())method)();
+        struct work w = pop(st);
+        ((void(*)())w.f)(w.closure);
     }
     printf("Size of stack after 3 pop: %d\n", size(st));
     return EXIT_SUCCESS;
