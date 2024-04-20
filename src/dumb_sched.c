@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include "sched.h"
-#include "stack.h"
+#include "include/sched.h"
+#include "include/stack.h"
 
 struct scheduler {
     struct stack *tasks;

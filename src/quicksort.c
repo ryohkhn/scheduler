@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <assert.h>
-#include "sched.h"
+#include "include/sched.h"
 
 int
 partition(int *a, int lo, int hi)

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
-#include "sched.h"
+#include "include/sched.h"
 
 struct test_args {
     int n;
