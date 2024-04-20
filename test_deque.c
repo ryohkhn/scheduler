@@ -39,11 +39,6 @@ int main() {
     while (!is_empty(dq)) {
         struct work w = pop_top(dq);
         ((void(*)())w.f)(w.closure);
-        if (dq->top != NULL || dq->bottom != NULL) {
-            printf("wtf\n");
-        } else {
-            break;
-        }
     }
     printf("Just finished popping them from top this time\n");
 

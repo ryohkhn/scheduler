@@ -32,6 +32,7 @@ void slippy_time(void *args) {
             pthread_cond_wait(&s->cond_var, &s->mutex);
         }
         else {
+            // We inform every thread waiting that no more work is available
             pthread_cond_broadcast(&s->cond_var);
             pthread_mutex_unlock(&s->mutex);
             return; // No threads are working and there are no tasks left = end of threads/scheduler
@@ -104,7 +105,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
             return -1;
         }
     }
-    // TODO Free sched et pthread_t
     free(sched.threads);
     free(sched.tasks);
     return 1;
@@ -187,7 +187,6 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     struct work w = {closure, f};
     push(w, s->tasks);
 
-    // TODO only send signal if a thread is waiting ??
     pthread_cond_signal(&s->cond_var);
     pthread_mutex_unlock(&s->mutex);
 
