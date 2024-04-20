@@ -1,6 +1,7 @@
-#include "include/stack.h"
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "../include/stack.h"
 
 struct stack *stack_init() {
     struct stack *s = malloc(sizeof(struct stack));

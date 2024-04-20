@@ -1,4 +1,4 @@
-#include "sched.h"
+#include "../include/sched.h"
 #include <stdlib.h>
 #include <stdio.h>
 

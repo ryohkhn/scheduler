@@ -1,7 +1,8 @@
-#include "include/deque.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <strings.h>
+
+#include "../include/deque.h"
 
 struct deque *deque_init() {
     struct deque *d = malloc(sizeof(struct deque));

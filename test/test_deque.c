@@ -1,4 +1,4 @@
-#include "deque.h"
+#include "../include/deque.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -41,8 +41,6 @@ int main() {
         ((void(*)())w.f)(w.closure);
     }
     printf("Just finished popping them from top this time\n");
-
-
 
     return EXIT_SUCCESS;
 }
