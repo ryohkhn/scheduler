@@ -9,6 +9,8 @@
 struct scheduler {
     int nthreads;
     int qlen; // Maximum number of tasks
+    int nb_threads_working;
+    pthread_mutex_t threads_working_mutex;
     pthread_t *threads;
     struct deque **deques;
     pthread_mutex_t *deques_mutexes;
@@ -75,6 +77,13 @@ void gaming_time(void* args) {
             if (steal_work(s, dq, id))
                 break;
             else {
+                pthread_mutex_lock(&s->threads_working_mutex);
+                if (s->nb_threads_working == 0) {
+                    pthread_mutex_unlock(&s->deques_mutexes[id]);
+                    pthread_mutex_unlock(&s->threads_working_mutex);
+                    return;
+                }
+
                 pthread_mutex_unlock(&s->deques_mutexes[id]);
                 usleep(1000);
                 pthread_mutex_lock(&s->deques_mutexes[id]);
@@ -84,9 +93,17 @@ void gaming_time(void* args) {
         taskfunc f = w.f;
         void *closure = w.closure;
 
+        pthread_mutex_lock(&s->threads_working_mutex);
+        s->nb_threads_working++;
+        pthread_mutex_unlock(&s->threads_working_mutex);
+
         pthread_mutex_unlock(&s->deques_mutexes[id]);
 
         ((void(*)())f)(closure, s); // Going to work
+
+        pthread_mutex_lock(&s->threads_working_mutex);
+        s->nb_threads_working--;
+        pthread_mutex_unlock(&s->threads_working_mutex);
     }
 }
 
@@ -105,7 +122,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         perror("Failed to malloc threads array");
         return -1;
     }
-    sched.qlen = qlen;
     sched.deques = malloc(sizeof(struct deque*) * sched.nthreads);
     if (!sched.deques) {
         perror("Failed to malloc deques array");
@@ -116,6 +132,10 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         perror("Failled to malloc mutexes array");
         return -1;
     }
+    sched.qlen = qlen;
+    sched.nb_threads_working = 0;
+
+    pthread_mutex_init(&sched.threads_working_mutex, NULL);
 
     for (int id = 0; id < sched.nthreads; ++id) {
         struct deque *dq = deque_init();

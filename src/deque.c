@@ -28,6 +28,7 @@ struct node * node_init(struct work w, struct node *next, struct node *prev) {
     return n;
 }
 
+// TODO le d = NULL est pas logique mais obligatoire si les threads essaient de steal avant que tous les threads soient créés
 int is_empty(struct deque *d) {
     return d == NULL || d->top == NULL || d->bottom == NULL;
 }
