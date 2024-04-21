@@ -3,13 +3,12 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "../include/sched.h"
 #include "../include/stack.h"
 
 struct scheduler {
     struct stack *tasks;
-    int qlen; // Maximum number of tasks
     int nthreads;
+    int qlen; // Maximum number of tasks
     int nb_threads_working;
     pthread_mutex_t mutex;
     pthread_cond_t cond_var;
@@ -58,6 +57,7 @@ void slippy_time(void *args) {
     slippy_time(args); // When back from work go to sleep again
 }
 
+// TODO CHECK MALLOC & SYSTEM CALLS
 // Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
@@ -84,6 +84,10 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         sched.nthreads = nthreads;
     }
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
+    if (!sched.threads) {
+        perror("Failed to malloc threads array");
+        return -1;
+    }
     sched.qlen = qlen;
     sched.nb_threads_working = 0;
 
