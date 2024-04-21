@@ -25,12 +25,12 @@ void seed_rand() {
 
     if(getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
        perror("Random seed generator failed, time used instead");
-        srand(time(NULL));
+       srand(time(NULL));
     }
     srand(seed);
 }
 
-int next_thread_id(int currend_id, int original_thread_id,int n_threads) {
+int next_thread_id(int currend_id, int n_threads) {
     return (currend_id + 1) % n_threads;
 }
 
@@ -39,21 +39,26 @@ int steal_work(struct scheduler *s, struct deque *dq, int thread_id) {
     pthread_mutex_unlock(&s->deques_mutexes[thread_id]);
     seed_rand();
     int random_thread = rand() % s->nthreads;
+    int next_thread = random_thread;
     printf("Stealer chose thread_t %d\n", random_thread);
-    struct deque *rand_dq = s->deques[random_thread];
-    int next_thread = next_thread_id(random_thread, thread_id, s->nthreads);
 
-    while (next_thread != random_thread) {
+    do {
+        struct deque *rand_dq = s->deques[next_thread];
+        pthread_mutex_lock(&s->deques_mutexes[next_thread]);
         printf("Stealer checks thread_t %d\n", next_thread);
+
         if (!is_empty(rand_dq)) {
             printf("Stealer found labor in thread_t %d !!\n", next_thread);
-            pthread_mutex_lock(&s->deques_mutexes[thread_id]);
             struct work w = pop_top(rand_dq);
+            pthread_mutex_unlock(&s->deques_mutexes[next_thread]);
+            pthread_mutex_lock(&s->deques_mutexes[thread_id]);
             push_bottom(w, dq);
             return 1;
         }
-        next_thread = next_thread_id(random_thread, thread_id, s->nthreads);
+        pthread_mutex_unlock(&s->deques_mutexes[next_thread]);
+        next_thread = next_thread_id(next_thread, s->nthreads);
     }
+    while (next_thread != random_thread);
 
     return 0;
 }

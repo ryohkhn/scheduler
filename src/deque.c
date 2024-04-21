@@ -29,7 +29,7 @@ struct node * node_init(struct work w, struct node *next, struct node *prev) {
 }
 
 int is_empty(struct deque *d) {
-    return d->top == NULL || d->bottom == NULL;
+    return d == NULL || d->top == NULL || d->bottom == NULL;
 }
 
 int size(struct deque *d) {
