@@ -83,6 +83,7 @@ void gaming_time(void* args) {
                     pthread_mutex_unlock(&s->threads_working_mutex);
                     return;
                 }
+                pthread_mutex_unlock(&s->threads_working_mutex);
 
                 pthread_mutex_unlock(&s->deques_mutexes[id]);
                 usleep(1000);

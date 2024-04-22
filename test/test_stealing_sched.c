@@ -8,7 +8,7 @@ void wake_up(void *closure, struct scheduler *s) {
 }
 
 int main(void) {
-    int nthreads = 1, qlen = 10;
+    int nthreads = 16, qlen = 10;
 
     if (sched_init(nthreads, qlen, wake_up, NULL) == -1) {
         perror("Failed to init sched");
