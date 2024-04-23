@@ -6,42 +6,60 @@ FAST = -O2
 
 INCLUDE = include
 
+SRCS_DIR = src
+
+BUILD_DIR = build
+
+TESTS_DIR = test
+
+TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem
+
 all: test
 
-build/stack.o: src/stack.c $(INCLUDE)/stack.h
-	$(CC) $(CFLAGS) -c src/stack.c -o build/stack.o
+# General build rules
+$(BUILD_DIR)/%.o: $(SRCS_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-test_stack: test/test_stack.c build/stack.o $(INCLUDE)/stack.h src/stack.c
-	$(CC) $(cflags) test/test_stack.c build/stack.o -o test/test_stack
+# Specific rules for files with dependencies
+$(BUILD_DIR)/dumb_sched.o: $(SRCS_DIR)/dumb_sched.c $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) -c $< -o $@
 
-build/dumb_sched.o: src/dumb_sched.c $(INCLUDE)/sched.h $(INCLUDE)/stack.h
-	$(CC) $(CFLAGS) -c src/dumb_sched.c -o build/dumb_sched.o
+$(BUILD_DIR)/dumb_sched_sem.o: $(SRCS_DIR)/dumb_sched_sem.c $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) -c $< -o $@
 
-build/stealing_sched.o: src/stealing_sched.c $(INCLUDE)/sched.h $(INCLUDE)/deque.h
-	$(CC) $(CFLAGS) -c src/stealing_sched.c -o build/stealing_sched.o
+$(BUILD_DIR)/stealing_sched.o: $(SRCS_DIR)/stealing_sched.c $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) -c $< -o $@
 
-build/deque.o: src/deque.c $(INCLUDE)/deque.h
-	$(CC) $(CFLAGS) -c src/deque.c -o build/deque.o
+# Tests and dependencies
 
-test_deque: test/test_deque.c build/deque.o $(INCLUDE)/deque.h src/deque.c
-	$(CC) $(CFLAGS) test/test_deque.c build/deque.o -o test/test_deque
+test_stack: $(TESTS_DIR)/test_stack.c $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
 
-test_dumb_sched: test/test_dumb_sched.c src/dumb_sched.c build/dumb_sched.o build/stack.o
-	$(CC) $(CFLAGS) test/test_dumb_sched.c build/dumb_sched.o build/stack.o -o test/test_dumb_sched
+test_deque: $(TESTS_DIR)/test_deque.c $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
 
-test_dumb_quicksort: src/quicksort.c src/dumb_sched.c build/dumb_sched.o build/stack.o
-	$(CC) $(CFLAGS) src/quicksort.c build/dumb_sched.o build/stack.o -o test/test_dumb_quicksort
+test_dumb_sched: $(TESTS_DIR)/test_dumb_sched.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
 
-concurrent_test: src/concurrent_tester.c src/dumb_sched.c build/dumb_sched.o build/stack.o
-	$(CC) $(CFLAGS) src/concurrent_tester.c build/dumb_sched.o build/stack.o -o test/concurrent_test
+test_dumb_sched_sem: $(TESTS_DIR)/test_dumb_sched.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
 
-test_stealing_sched: test/test_stealing_sched.c src/stealing_sched.c build/stealing_sched.o build/deque.o
-	$(CC) $(CFLAGS) test/test_stealing_sched.c build/stealing_sched.o build/deque.o -o test/test_stealing_sched
+test_dumb_quicksort: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
 
-test: test_stack test_deque test_dumb_sched concurrent_test test_dumb_quicksort
+test_dumb_quicksort_sem: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+
+concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+
+test_stealing_sched: $(TESTS_DIR)/test_stealing_sched.c $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+
+test: $(TESTS)
 
 clean:
-	rm -f test/test_stack test/test_deque test/test_dumb_sched test/concurrent_test test/test_dumb_quicksort test/test_stealing_sched
+	rm -f $(addprefix $(TESTS_DIR)/, $(TESTS))
 
 ifneq ("$(wildcard build/*.o)", "")
 	rm build/*.o
