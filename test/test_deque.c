@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void test(void *closure, struct scheduler *s) {
+void test(void *, struct scheduler *) {
     printf("IN TEST !\n");
 }
-void last_test(void *closure, struct scheduler *s) {
+void last_test(void *, struct scheduler *) {
     printf("IN LAST TEST !\n");
 }
 

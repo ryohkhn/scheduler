@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void wake_up(void *closure, struct scheduler *s) {
+void wake_up(void *, struct scheduler *) {
     printf("HELLO WORLD\n");
 }
 
-void last_one(void *closure, struct scheduler *s) {
+void last_one(void *, struct scheduler *) {
     printf("~~BYE WORLD~~\n");
 }
 
