@@ -12,7 +12,7 @@ BUILD_DIR = build
 
 TESTS_DIR = test
 
-TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem
+TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem test_stealing_sched
 
 all: test
 
