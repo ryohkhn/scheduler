@@ -16,16 +16,12 @@ struct scheduler {
     pthread_t *threads;
 };
 
-void cleanup_pthread_vars(struct scheduler *sched) {
-    pthread_mutex_destroy(&sched->mutex);
-    pthread_cond_destroy(&sched->cond_var);
-    sem_destroy(&sched->sem);
-}
-
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
     free_up(sched->tasks);
-    cleanup_pthread_vars(sched);
+    pthread_mutex_destroy(&sched->mutex);
+    pthread_cond_destroy(&sched->cond_var);
+    sem_destroy(&sched->sem);
 }
 
 void *slippy_time(void *args) {
@@ -60,6 +56,11 @@ void *slippy_time(void *args) {
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
 
+    if (nthreads <= 0 || nthreads > sched_default_threads())
+        sched.nthreads = sched_default_threads();
+    else
+        sched.nthreads = nthreads;
+
     pthread_mutex_init(&sched.mutex, NULL);
     pthread_cond_init(&sched.cond_var, NULL);
     sem_init(&sched.sem, 1, sched.nthreads - 1);
@@ -67,37 +68,32 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     sched.tasks = stack_init();
     if (!sched.tasks) {
         fprintf(stderr, "Failed to initialize the stack\n");
-        cleanup_pthread_vars(&sched);
+        // cleanup_pthread_vars(&sched);
         return -1;
     }
-
-    if (nthreads <= 0 || nthreads > sched_default_threads())
-        sched.nthreads = sched_default_threads();
-    else
-        sched.nthreads = nthreads;
 
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
     if (!sched.threads) {
         fprintf(stderr, "Failed to malloc threads array\n");
-        free(sched.tasks);
-        cleanup_pthread_vars(&sched);
+        // free(sched.tasks);
+        // cleanup_pthread_vars(&sched);
         return -1;
     }
     sched.qlen = qlen;
 
-    printf("Unlocking mutex, nb threads: %d, is_empty: %d\n", sched.nthreads, is_empty(sched.tasks));
+    // printf("Unlocking mutex, nb threads: %d, is_empty: %d\n", sched.nthreads, is_empty(sched.tasks));
 
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_create(&sched.threads[i], NULL,slippy_time, &sched) != 0) {
             fprintf(stderr, "Failed to create thread\n");
-            cleanup_sched(&sched);
+            // cleanup_sched(&sched);
             return -1;
         }
     }
 
     if (!sched_spawn(f, closure, &sched)) {
         fprintf(stderr, "Failed to create the inital task\n");
-        cleanup_sched(&sched);
+        // cleanup_sched(&sched);
         return -1;
     }
 
@@ -105,7 +101,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_join(sched.threads[i], arg) != 0) {
             fprintf(stderr, "Failed to join thread\n");
-            cleanup_sched(&sched);
+            // cleanup_sched(&sched);
             return -1;
         }
     }
