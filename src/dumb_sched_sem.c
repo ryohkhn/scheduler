@@ -24,7 +24,7 @@ void cleanup_pthread_vars(struct scheduler *sched) {
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
-    free(sched->tasks);
+    free_up(sched->tasks);
     cleanup_pthread_vars(sched);
 }
 

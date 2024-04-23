@@ -50,7 +50,6 @@ test_stealing_sched: test/test_stealing_sched.c src/stealing_sched.c build/steal
 test: test_stack test_deque test_dumb_sched concurrent_test test_dumb_quicksort test_dumb_quicksort_sem
 
 clean:
-	rm -f test/test_stack test/test_deque test/test_dumb_sched test/concurrent_test test/test_dumb_quicksort test/test_stealing_sched test/test_dumb_quicksort_sem
 
 ifneq ("$(wildcard build/*.o)", "")
 	rm build/*.o

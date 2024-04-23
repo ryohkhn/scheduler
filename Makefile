@@ -12,6 +12,8 @@ BUILD_DIR = build
 
 TESTS_DIR = test
 
+OUT_DIR = out
+
 TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem
 
 all: test
@@ -33,39 +35,38 @@ $(BUILD_DIR)/stealing_sched.o: $(SRCS_DIR)/stealing_sched.c $(BUILD_DIR)/deque.o
 # Tests and dependencies
 
 test_stack: $(TESTS_DIR)/test_stack.c $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_deque: $(TESTS_DIR)/test_deque.c $(BUILD_DIR)/deque.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_dumb_sched: $(TESTS_DIR)/test_dumb_sched.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_dumb_sched_sem: $(TESTS_DIR)/test_dumb_sched.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_dumb_quicksort: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_dumb_quicksort_sem: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_stealing_sched: $(TESTS_DIR)/test_stealing_sched.c $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
-	$(CC) $(CFLAGS) $^ -o $(TESTS_DIR)/$@
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test: $(TESTS)
 
+#rm -f $(addprefix $(TESTS_DIR)/, $(TESTS))
 clean:
-	rm -f $(addprefix $(TESTS_DIR)/, $(TESTS))
-
-ifneq ("$(wildcard build/*.o)", "")
-	rm build/*.o
+ifneq ("$(wildcard $(BUILD_DIR)/*.o)", "")
+	rm $(BUILD_DIR)/*.o
 endif
-ifneq ("$(wildcard test/*.o)", "")
-	rm test/*.o
+ifneq ("$(wildcard $(OUT_DIR)/*)", "")
+	rm $(OUT_DIR)/*
 endif
 
 .PHONY:	all test clean
