@@ -1,30 +1,28 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "../include/stack.h"
 
 struct stack *stack_init() {
     struct stack *s = malloc(sizeof(struct stack));
-    if (s != NULL) {
-        s->size = 0;
-        return s;
-    } else {
-        printf("Failed to malloc stack\n");
+    if (!s) {
+        fprintf(stderr, "Failed to malloc stack\n");
         return NULL;
     }
+    memset(s, 0, sizeof(struct stack));
+    return s;
 }
 
 struct node *node_init(struct work w, struct node *next) {
     struct node *n = malloc(sizeof(struct node));
-    if (n != NULL) {
-        n->w = w;
-        n->next = next;
-        return n;
-    }
-    else {
-        printf("Failed to malloc node in stack\n");
+    if (!n) {
+        fprintf(stderr, "Failed to malloc node in stack\n");
         return NULL;
     }
+    n->w = w;
+    n->next = next;
+    return n;
 }
 
 int is_empty(struct stack *s) {
@@ -39,10 +37,9 @@ void push(struct work w, struct stack *s) {
     struct node *n = node_init(w, s->top);
     if (n == NULL) {
         return;
-    } else {
-        s->top = n;
-        s->size++;
     }
+    s->top = n;
+    s->size++;
 }
 
 struct work pop(struct stack *s) {
