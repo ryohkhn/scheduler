@@ -26,28 +26,34 @@ void seed_rand() {
     unsigned int seed;
 
     if(getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
-       perror("Random seed generator failed, time used instead");
-       srand(time(NULL));
+        fprintf(stderr, "Random seed generator failed, time used as a seed instead");
+        srand(time(NULL));
     }
     srand(seed);
 }
 
-int next_thread_id(int currend_id, int n_threads) {
-    return (currend_id + 1) % n_threads;
+int next_thread_id(int currend_id, int n_threads, int og_id) {
+    int next = (currend_id + 1) % n_threads;
+    // Skip the case where the thread tries to steal himself
+    if (og_id == next)
+        next_thread_id(next, n_threads, og_id);
+    return next;
 }
 
 int steal_work(struct scheduler *s, struct deque *dq, int thread_id) {
-    printf("Thread_t %d is a thief\n", thread_id);
     pthread_mutex_unlock(&s->deques_mutexes[thread_id]);
+    // Prevent from infinite looping when the scheduler is serial
+    if (s->nthreads == 1) return 0;
+    printf("Thread_t %d is a thief\n", thread_id);
     seed_rand();
-    int random_thread = rand() % s->nthreads;
+    int random_thread = next_thread_id(rand(), s->nthreads, thread_id);
     int next_thread = random_thread;
     printf("Stealer chose thread_t %d\n", random_thread);
 
     do {
         struct deque *rand_dq = s->deques[next_thread];
-        pthread_mutex_lock(&s->deques_mutexes[next_thread]);
         printf("Stealer checks thread_t %d\n", next_thread);
+        pthread_mutex_lock(&s->deques_mutexes[next_thread]);
 
         if (!is_empty(rand_dq)) {
             printf("Stealer found labor in thread_t %d !!\n", next_thread);
@@ -58,14 +64,14 @@ int steal_work(struct scheduler *s, struct deque *dq, int thread_id) {
             return 1;
         }
         pthread_mutex_unlock(&s->deques_mutexes[next_thread]);
-        next_thread = next_thread_id(next_thread, s->nthreads);
+        next_thread = next_thread_id(next_thread, s->nthreads, thread_id);
     }
     while (next_thread != random_thread);
 
     return 0;
 }
 
-void gaming_time(void* args) {
+void *gaming_time(void* args) {
     struct scheduler *s = ((struct args_pack *)args)->s;
     struct deque *dq = ((struct args_pack *)args)->dq;
     int id = ((struct args_pack *)args)->thread_id;
@@ -81,7 +87,7 @@ void gaming_time(void* args) {
                 if (s->nb_threads_working == 0) {
                     pthread_mutex_unlock(&s->deques_mutexes[id]);
                     pthread_mutex_unlock(&s->threads_working_mutex);
-                    return;
+                    return NULL;
                 }
                 pthread_mutex_unlock(&s->threads_working_mutex);
 
@@ -100,7 +106,7 @@ void gaming_time(void* args) {
 
         pthread_mutex_unlock(&s->deques_mutexes[id]);
 
-        ((void(*)())f)(closure, s); // Going to work
+        f(closure, s); // Going to work
 
         pthread_mutex_lock(&s->threads_working_mutex);
         s->nb_threads_working--;
@@ -113,24 +119,24 @@ void gaming_time(void* args) {
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
 
-    if (nthreads <= 0)
+    if (nthreads <= 0 || nthreads > sched_default_threads())
         sched.nthreads = sched_default_threads();
     else
         sched.nthreads = nthreads;
 
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
     if (!sched.threads) {
-        perror("Failed to malloc threads array");
+        fprintf(stderr, "Failed to malloc threads array\n");
         return -1;
     }
     sched.deques = malloc(sizeof(struct deque*) * sched.nthreads);
     if (!sched.deques) {
-        perror("Failed to malloc deques array");
+        fprintf(stderr, "Failed to malloc deques array\n");
         return -1;
     }
     sched.deques_mutexes = malloc(sizeof(pthread_mutex_t) * sched.nthreads);
     if (!sched.deques_mutexes) {
-        perror("Failled to malloc mutexes array");
+        fprintf(stderr, "Failed to malloc mutexes array\n");
         return -1;
     }
     sched.qlen = qlen;
@@ -145,18 +151,20 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
             push_top(w, dq);
         }
         sched.deques[id] = dq;
-        struct args_pack argsPack = { &sched, dq, id};
+        struct args_pack argsPack = {&sched, dq, id};
         pthread_mutex_init(&sched.deques_mutexes[id], NULL);
-        if(pthread_create(&sched.threads[id], NULL,(void *(*)(void *)) gaming_time, &argsPack) != 0) {
-            perror("Failed to create thread");
+        if(pthread_create(&sched.threads[id], NULL,gaming_time, &argsPack) != 0) {
+            fprintf(stderr, "Failed to create thread\n");
             return -1;
         }
     }
 
+    // TODO SCHED_SPAWN LA FONCTION DE BASE DANS LE THREAD 0 (see dumb_sched) et retirer de la boucle
+
     void *arg = NULL;
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_join(sched.threads[i], arg) != 0) {
-            perror("Failed to join thread");
+            fprintf(stderr, "Failed to join thread\n");
             return -1;
         }
     }

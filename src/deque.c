@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 
 #include "../include/deque.h"
 
@@ -8,9 +8,9 @@ struct deque *deque_init() {
     struct deque *d = malloc(sizeof(struct deque));
 
     if (d != NULL)
-        bzero(d, sizeof(struct deque));
+        memset(d, 0, sizeof(struct deque));
     else
-        printf("Failed to malloc deque\n");
+        fprintf(stderr, "Failed to malloc deque\n");
     return d;
 }
 
