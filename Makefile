@@ -16,7 +16,7 @@ OUT_DIR = out
 
 LDLIBS = `pkg-config --libs gtk4`
 
-TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem test_stealing_sched test_mandelbrot_dumb
+TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem test_stealing_sched test_stealing_quicksort test_stealing_quicksort_sem
 
 all: test
 
@@ -52,6 +52,12 @@ test_dumb_quicksort: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched.o $(BUILD_
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_dumb_quicksort_sem: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
+
+test_stealing_quicksort: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
+
+test_stealing_quicksort_sem: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/stealing_sched_sem.o $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
