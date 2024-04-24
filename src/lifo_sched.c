@@ -2,53 +2,54 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include <semaphore.h>
 
 #include "../include/stack.h"
 
 struct scheduler {
-    struct stack *tasks;
     int nthreads;
     int qlen; // Maximum number of tasks
-    sem_t sem;
+    pthread_t *threads;
+
+    int nth_sleeping_threads;
+
     pthread_mutex_t mutex;
     pthread_cond_t cond_var;
-    pthread_t *threads;
+    struct stack *tasks;
 };
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
-    free_up(sched->tasks);
     pthread_mutex_destroy(&sched->mutex);
     pthread_cond_destroy(&sched->cond_var);
-    sem_destroy(&sched->sem);
+    free(sched->tasks);
 }
 
 void *slippy_time(void *args) {
-    struct scheduler *s = (struct scheduler*) args;
+    struct scheduler *sched = (struct scheduler*) args;
 
     while (1) {
-        pthread_mutex_lock(&s->mutex); // Lock taken to check if there is work to do
-        while (is_empty(s->tasks)) {
-            if (sem_trywait(&s->sem)) {
-                // Other threads are working so tasks might get added, we go to sleep until we get spawned
-                pthread_cond_wait(&s->cond_var, &s->mutex);
-            }
-            else {
+        pthread_mutex_lock(&sched->mutex); // Lock taken to check if there is work to do
+
+        while (is_empty(sched->tasks)) {
+            sched->nth_sleeping_threads++;
+            if (sched->nth_sleeping_threads >= sched->nthreads) {
                 // We inform every thread waiting that no more work is available
-                pthread_cond_broadcast(&s->cond_var);
-                pthread_mutex_unlock(&s->mutex);
+                pthread_cond_broadcast(&sched->cond_var);
+                pthread_mutex_unlock(&sched->mutex);
                 return NULL; // No threads are working and there are no tasks left = end of threads/scheduler
+                // Other threads are working so tasks might get added, we go to sleep until we get spawned
             }
+            pthread_cond_wait(&sched->cond_var, &sched->mutex);
+            sched->nth_sleeping_threads--;
         }
 
-        sem_post(&s->sem);
-        struct work w = pop(s->tasks);
-        pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
-
+        struct work w = pop(sched->tasks);
         taskfunc f = w.f;
         void *closure = w.closure;
-        f(closure, s); // Going to work
+
+        pthread_mutex_unlock(&sched->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
+
+        f(closure, sched); // Going to work
     }
 }
 
@@ -56,14 +57,8 @@ void *slippy_time(void *args) {
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
 
-    if (nthreads <= 0 || nthreads > sched_default_threads())
-        sched.nthreads = sched_default_threads();
-    else
-        sched.nthreads = nthreads;
-
     pthread_mutex_init(&sched.mutex, NULL);
     pthread_cond_init(&sched.cond_var, NULL);
-    sem_init(&sched.sem, 1, sched.nthreads - 1);
 
     sched.tasks = stack_init();
     if (!sched.tasks) {
@@ -71,6 +66,11 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         // cleanup_pthread_vars(&sched);
         return -1;
     }
+
+    if (nthreads <= 0 || nthreads > sched_default_threads())
+        sched.nthreads = sched_default_threads();
+    else
+        sched.nthreads = nthreads;
 
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
     if (!sched.threads) {
@@ -80,6 +80,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         return -1;
     }
     sched.qlen = qlen;
+    sched.nth_sleeping_threads = 0;
 
     // printf("Unlocking mutex, nb threads: %d, is_empty: %d\n", sched.nthreads, is_empty(sched.tasks));
 

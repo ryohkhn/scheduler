@@ -11,26 +11,29 @@
 struct scheduler {
     int nthreads;
     int qlen; // Maximum number of tasks
-    sem_t sem;
-    pthread_cond_t cond_var;
     pthread_t *threads;
+    pthread_cond_t cond_var;
+
+    sem_t sem;
+
     struct deque **deques;
     pthread_mutex_t *deques_mutexes;
 };
 
 struct args_pack {
-    struct scheduler *s;
+    struct scheduler *sched;
     struct deque *dq;
     int thread_id;
 };
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
+    pthread_cond_destroy(&sched->cond_var);
+    sem_destroy(&sched->sem);
+
     for (int i = 0; i < sched->nthreads; ++i) {
         free_up(sched->deques[i]);
     }
-
-    pthread_cond_destroy(&sched->cond_var);
     for (int i = 0; i < sched->nthreads; ++i) {
         pthread_mutex_destroy(&sched->deques_mutexes[i]);
     }
@@ -54,31 +57,31 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
     return next;
 }
 
-int steal_work(struct scheduler *s, struct deque *dq, int thread_id) {
-    pthread_mutex_unlock(&s->deques_mutexes[thread_id]);
+int steal_work(struct scheduler *sched, struct deque *dq, int thread_id) {
+    pthread_mutex_unlock(&sched->deques_mutexes[thread_id]);
     // Prevent from infinite looping when the scheduler is serial
-    if (s->nthreads == 1) return 0;
+    if (sched->nthreads == 1) return 0;
     // printf("Thread_t %d is a thief\n", thread_id);
     seed_rand();
-    int random_thread = next_thread_id(rand(), s->nthreads, thread_id);
+    int random_thread = next_thread_id(rand(), sched->nthreads, thread_id);
     int next_thread = random_thread;
     // printf("Stealer chose thread_t %d\n", random_thread);
 
     do {
-        struct deque *rand_dq = s->deques[next_thread];
+        struct deque *rand_dq = sched->deques[next_thread];
         // printf("Stealer checks thread_t %d\n", next_thread);
-        pthread_mutex_lock(&s->deques_mutexes[next_thread]);
+        pthread_mutex_lock(&sched->deques_mutexes[next_thread]);
 
         if (!is_empty(rand_dq)) {
             // printf("Stealer found labor in thread_t %d !!\n", next_thread);
             struct work w = pop_top(rand_dq);
-            pthread_mutex_unlock(&s->deques_mutexes[next_thread]);
-            pthread_mutex_lock(&s->deques_mutexes[thread_id]);
+            pthread_mutex_unlock(&sched->deques_mutexes[next_thread]);
+            pthread_mutex_lock(&sched->deques_mutexes[thread_id]);
             push_bottom(w, dq);
             return 1;
         }
-        pthread_mutex_unlock(&s->deques_mutexes[next_thread]);
-        next_thread = next_thread_id(next_thread, s->nthreads, thread_id);
+        pthread_mutex_unlock(&sched->deques_mutexes[next_thread]);
+        next_thread = next_thread_id(next_thread, sched->nthreads, thread_id);
     }
     while (next_thread != random_thread);
 
@@ -86,34 +89,35 @@ int steal_work(struct scheduler *s, struct deque *dq, int thread_id) {
 }
 
 void *gaming_time(void* args) {
-    struct scheduler *s = ((struct args_pack *)args)->s;
+    struct scheduler *sched = ((struct args_pack *)args)->sched;
     struct deque *dq = ((struct args_pack *)args)->dq;
     int id = ((struct args_pack *)args)->thread_id;
 
     while (1) {
-        pthread_mutex_lock(&s->deques_mutexes[id]);
+        pthread_mutex_lock(&sched->deques_mutexes[id]);
 
         while (is_empty(dq)) {
-            if (steal_work(s, dq, id))
+            if (steal_work(sched, dq, id))
                 break;
             else {
-                if (sem_trywait(&s->sem)) {
-                    pthread_cond_wait(&s->cond_var, &s->deques_mutexes[id]);
+                if (sem_trywait(&sched->sem)) {
+                    pthread_cond_wait(&sched->cond_var, &sched->deques_mutexes[id]);
+                    sem_post(&sched->sem);
                 }
                 else {
-                    pthread_mutex_unlock(&s->deques_mutexes[id]);
+                    pthread_cond_broadcast(&sched->cond_var);
+                    pthread_mutex_unlock(&sched->deques_mutexes[id]);
+                    sem_post(&sched->sem);
                     return NULL;
                 }
             }
         }
-
-        sem_post(&s->sem);
         struct work w = pop_bottom(dq);
-        pthread_mutex_unlock(&s->deques_mutexes[id]);
+        pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
         taskfunc f = w.f;
         void *closure = w.closure;
-        f(closure, s); // Going to work
+        f(closure, sched); // Going to work
     }
 }
 

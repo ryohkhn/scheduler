@@ -11,6 +11,7 @@ struct scheduler {
     int nthreads;
     int qlen; // Maximum number of tasks
     pthread_t *threads;
+    pthread_cond_t cond_var;
 
     int nth_sleeping_threads;
     pthread_mutex_t sleep_mutex;
@@ -27,6 +28,7 @@ struct args_pack {
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
+    pthread_cond_destroy(&sched->cond_var);
     pthread_mutex_destroy(&sched->sleep_mutex);
 
     for (int i = 0; i < sched->nthreads; ++i) {
@@ -97,19 +99,17 @@ void *gaming_time(void* args) {
                 pthread_mutex_lock(&sched->sleep_mutex);
                 sched->nth_sleeping_threads++;
                 if (sched->nth_sleeping_threads >= sched->nthreads) {
+                    pthread_cond_broadcast(&sched->cond_var);
                     pthread_mutex_unlock(&sched->deques_mutexes[id]);
                     pthread_mutex_unlock(&sched->sleep_mutex);
                     return NULL;
                 }
                 pthread_mutex_unlock(&sched->sleep_mutex);
-                pthread_mutex_unlock(&sched->deques_mutexes[id]);
-
-                usleep(1000);
+                pthread_cond_wait(&sched->cond_var, &sched->deques_mutexes[id]);
 
                 pthread_mutex_lock(&sched->sleep_mutex);
                 sched->nth_sleeping_threads--;
                 pthread_mutex_unlock(&sched->sleep_mutex);
-                pthread_mutex_lock(&sched->deques_mutexes[id]);
             }
         }
         struct work w = pop_bottom(dq);
@@ -133,6 +133,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         sched.nthreads = nthreads;
 
     pthread_mutex_init(&sched.sleep_mutex, NULL);
+    pthread_cond_init(&sched.cond_var, NULL);
 
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
     if (!sched.threads) {
@@ -214,6 +215,8 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     struct work w = {closure, f};
     pthread_mutex_lock(&s->deques_mutexes[id]);
     push_bottom(w, s->deques[id]);
+
+    pthread_cond_signal(&s->cond_var);
     pthread_mutex_unlock(&s->deques_mutexes[id]);
 
     return 1;

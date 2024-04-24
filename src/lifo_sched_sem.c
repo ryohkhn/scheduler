@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <semaphore.h>
 
 #include "../include/stack.h"
 
@@ -9,7 +10,7 @@ struct scheduler {
     struct stack *tasks;
     int nthreads;
     int qlen; // Maximum number of tasks
-    int nb_threads_working;
+    sem_t sem;
     pthread_mutex_t mutex;
     pthread_cond_t cond_var;
     pthread_t *threads;
@@ -17,9 +18,10 @@ struct scheduler {
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
-    free(sched->tasks);
+    free_up(sched->tasks);
     pthread_mutex_destroy(&sched->mutex);
     pthread_cond_destroy(&sched->cond_var);
+    sem_destroy(&sched->sem);
 }
 
 void *slippy_time(void *args) {
@@ -28,9 +30,10 @@ void *slippy_time(void *args) {
     while (1) {
         pthread_mutex_lock(&s->mutex); // Lock taken to check if there is work to do
         while (is_empty(s->tasks)) {
-            if (s->nb_threads_working > 0) {
+            if (sem_trywait(&s->sem)) {
                 // Other threads are working so tasks might get added, we go to sleep until we get spawned
                 pthread_cond_wait(&s->cond_var, &s->mutex);
+                sem_post(&s->sem);
             }
             else {
                 // We inform every thread waiting that no more work is available
@@ -40,18 +43,13 @@ void *slippy_time(void *args) {
             }
         }
 
-        s->nb_threads_working++;
+        sem_post(&s->sem);
         struct work w = pop(s->tasks);
         pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
 
         taskfunc f = w.f;
         void *closure = w.closure;
-
         f(closure, s); // Going to work
-
-        pthread_mutex_lock(&s->mutex);
-        s->nb_threads_working--;
-        pthread_mutex_unlock(&s->mutex);
     }
 }
 
@@ -59,8 +57,14 @@ void *slippy_time(void *args) {
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
 
+    if (nthreads <= 0 || nthreads > sched_default_threads())
+        sched.nthreads = sched_default_threads();
+    else
+        sched.nthreads = nthreads;
+
     pthread_mutex_init(&sched.mutex, NULL);
     pthread_cond_init(&sched.cond_var, NULL);
+    sem_init(&sched.sem, 1, sched.nthreads - 1);
 
     sched.tasks = stack_init();
     if (!sched.tasks) {
@@ -68,11 +72,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         // cleanup_pthread_vars(&sched);
         return -1;
     }
-
-    if (nthreads <= 0 || nthreads > sched_default_threads())
-        sched.nthreads = sched_default_threads();
-    else
-        sched.nthreads = nthreads;
 
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
     if (!sched.threads) {
@@ -82,7 +81,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         return -1;
     }
     sched.qlen = qlen;
-    sched.nb_threads_working = 0;
 
     // printf("Unlocking mutex, nb threads: %d, is_empty: %d\n", sched.nthreads, is_empty(sched.tasks));
 
