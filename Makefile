@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -I$(INCLUDE) $(FAST)
 
 FAST = -O2
 
@@ -16,7 +16,11 @@ OUT_DIR = out
 
 LDLIBS = `pkg-config --libs gtk4`
 
-TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem test_stealing_sched test_stealing_quicksort test_stealing_quicksort_sem
+# TESTS = test_stack test_deque test_lifo_sched test_lifo_sched_sem concurrent_test test_lifo_quicksort test_lifo_quicksort_sem test_stealing_sched test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond
+
+TESTS = test_lifo_quicksort test_lifo_quicksort_sem test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond
+
+BENCHMARK_FILE = quicksort.c
 
 all: test
 
@@ -25,13 +29,19 @@ $(BUILD_DIR)/%.o: $(SRCS_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Specific rules for files with dependencies
-$(BUILD_DIR)/dumb_sched.o: $(SRCS_DIR)/dumb_sched.c $(BUILD_DIR)/stack.o
+$(BUILD_DIR)/lifo_sched.o: $(SRCS_DIR)/lifo_sched.c $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/dumb_sched_sem.o: $(SRCS_DIR)/dumb_sched_sem.c $(BUILD_DIR)/stack.o
+$(BUILD_DIR)/lifo_sched_sem.o: $(SRCS_DIR)/lifo_sched_sem.c $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/stealing_sched.o: $(SRCS_DIR)/stealing_sched.c $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/stealing_sched_sem.o: $(SRCS_DIR)/stealing_sched_sem.c $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/stealing_sched_cond.o: $(SRCS_DIR)/stealing_sched_cond.c $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Tests and dependencies
@@ -42,32 +52,35 @@ test_stack: $(TESTS_DIR)/test_stack.c $(BUILD_DIR)/stack.o
 test_deque: $(TESTS_DIR)/test_deque.c $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_dumb_sched: $(TESTS_DIR)/test_dumb_sched.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
+test_lifo_sched: $(TESTS_DIR)/test_lifo_sched.c $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_dumb_sched_sem: $(TESTS_DIR)/test_dumb_sched.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
+test_lifo_sched_sem: $(TESTS_DIR)/test_lifo_sched.c $(BUILD_DIR)/lifo_sched_sem.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_dumb_quicksort: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
+test_lifo_quicksort: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_dumb_quicksort_sem: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/dumb_sched_sem.o $(BUILD_DIR)/stack.o
+test_lifo_quicksort_sem: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched_sem.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_stealing_quicksort: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+test_stealing_quicksort: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_stealing_quicksort_sem: $(TESTS_DIR)/quicksort.c $(BUILD_DIR)/stealing_sched_sem.o $(BUILD_DIR)/deque.o
+test_stealing_quicksort_cond: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealing_sched_cond.o $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o
+test_stealing_quicksort_sem: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealing_sched_sem.o $(BUILD_DIR)/deque.o
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
+
+concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_stealing_sched: $(TESTS_DIR)/test_stealing_sched.c $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 $(BUILD_DIR)/mandelbrot_dumb.o: $(TESTS_DIR)/mandelbrot.c
-	$(CC) $(CFLAGS) $(FAST) -ffast-math `pkg-config --cflags gtk4` -c -o $(BUILD_DIR)/mandelbrot_dumb.o $(TESTS_DIR)/mandelbrot.c
+	$(CC) $(CFLAGS) -ffast-math `pkg-config --cflags gtk4` -c -o $(BUILD_DIR)/mandelbrot_dumb.o $(TESTS_DIR)/mandelbrot.c
 
 test_mandelbrot_dumb: $(BUILD_DIR)/mandelbrot_dumb.o $(BUILD_DIR)/dumb_sched.o
 	$(CC) $(BUILD_DIR)/mandelbrot_dumb.o $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_dumb
