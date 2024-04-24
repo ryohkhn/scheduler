@@ -32,7 +32,7 @@ void cleanup_sched(struct scheduler *sched) {
     pthread_mutex_destroy(&sched->sleep_mutex);
 
     for (int i = 0; i < sched->nthreads; ++i) {
-        free_up(sched->deques[i]);
+        free(sched->deques[i]);
     }
     for (int i = 0; i < sched->nthreads; ++i) {
         pthread_mutex_destroy(&sched->deques_mutexes[i]);
