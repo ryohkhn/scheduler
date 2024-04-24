@@ -34,6 +34,7 @@ void cleanup_sched(struct scheduler *sched) {
     for (int i = 0; i < sched->nthreads; ++i) {
         free(sched->deques[i]);
     }
+    free(sched->deques);
     for (int i = 0; i < sched->nthreads; ++i) {
         pthread_mutex_destroy(&sched->deques_mutexes[i]);
     }
@@ -206,7 +207,7 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
         id = 0;
     }
     if (sum >= s->qlen) {
-        cleanup_sched(s);
+        // cleanup_sched(s);
         errno = EAGAIN;
         perror("The task amount is superior than what the scheduler can handle");
         return -1;
