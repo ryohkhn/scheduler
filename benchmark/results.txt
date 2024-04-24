@@ -1,44 +1,400 @@
 LIFO scheduler
-Done in 0.943229 seconds.
-Done in 0.949057 seconds.
-Done in 0.944263 seconds.
-Done in 0.951573 seconds.
-Done in 0.943107 seconds.
-Done in 0.954077 seconds.
-Done in 0.958091 seconds.
-Done in 0.953010 seconds.
-Done in 0.948444 seconds.
-Done in 0.954566 seconds.
-LIFO scheduler with semaphore
-Done in 0.952493 seconds.
-Done in 0.950794 seconds.
-Done in 0.947610 seconds.
-Done in 0.953328 seconds.
-Done in 0.944841 seconds.
-Done in 0.950131 seconds.
-Done in 0.947129 seconds.
-Done in 0.951443 seconds.
-Done in 0.951727 seconds.
-Done in 0.951824 seconds.
+Serial time reference:
+Done in 0.910552 seconds.
+Done in 0.932785 seconds.
+Done in 0.931518 seconds.
+Done in 0.930290 seconds.
+Done in 0.932681 seconds.
+Done in 0.932284 seconds.
+Average time with 1 threads: 0.931912
+Done in 0.493123 seconds.
+Done in 0.490065 seconds.
+Done in 0.490336 seconds.
+Done in 0.932029 seconds.
+Done in 0.930864 seconds.
+Average time with 2 threads: 0.667283
+Done in 0.487667 seconds.
+Done in 0.928792 seconds.
+Done in 0.489581 seconds.
+Done in 0.489304 seconds.
+Done in 0.928625 seconds.
+Average time with 3 threads: 0.664794
+Done in 0.489200 seconds.
+Done in 0.931357 seconds.
+Done in 0.489795 seconds.
+Done in 0.931382 seconds.
+Done in 0.490708 seconds.
+Average time with 4 threads: 0.666488
+Done in 0.344140 seconds.
+Done in 0.492542 seconds.
+Done in 0.492890 seconds.
+Done in 0.492880 seconds.
+Done in 0.489351 seconds.
+Average time with 5 threads: 0.462361
+Done in 0.347426 seconds.
+Done in 0.343076 seconds.
+Done in 0.360379 seconds.
+Done in 0.345571 seconds.
+Done in 0.344496 seconds.
+Average time with 6 threads: 0.34819
+Done in 0.271030 seconds.
+Done in 0.489014 seconds.
+Done in 0.271854 seconds.
+Done in 0.271814 seconds.
+Done in 0.277356 seconds.
+Average time with 7 threads: 0.316214
+Done in 0.242902 seconds.
+Done in 0.232497 seconds.
+Done in 0.238762 seconds.
+Done in 0.233026 seconds.
+Done in 0.345517 seconds.
+Average time with 8 threads: 0.258541
+Done in 0.244599 seconds.
+Done in 0.231359 seconds.
+Done in 0.240146 seconds.
+Done in 0.245592 seconds.
+Done in 0.944070 seconds.
+Average time with 9 threads: 0.381153
+Done in 0.207932 seconds.
+Done in 0.207315 seconds.
+Done in 0.204423 seconds.
+Done in 0.233868 seconds.
+Done in 0.206829 seconds.
+Average time with 10 threads: 0.212073
+Done in 0.211032 seconds.
+Done in 0.227821 seconds.
+Done in 0.209517 seconds.
+Done in 0.238567 seconds.
+Done in 0.203897 seconds.
+Average time with 11 threads: 0.218167
+Done in 0.278659 seconds.
+Done in 0.233287 seconds.
+Done in 0.216315 seconds.
+Done in 0.239563 seconds.
+Done in 0.235941 seconds.
+Average time with 12 threads: 0.240753
+Done in 0.194722 seconds.
+Done in 0.188919 seconds.
+Done in 0.235885 seconds.
+Done in 0.215120 seconds.
+Done in 0.248386 seconds.
+Average time with 13 threads: 0.216606
+Done in 0.238522 seconds.
+Done in 0.243186 seconds.
+Done in 0.242629 seconds.
+Done in 0.251042 seconds.
+Done in 0.237524 seconds.
+Average time with 14 threads: 0.242581
+Done in 0.236564 seconds.
+Done in 0.185462 seconds.
+Done in 0.210394 seconds.
+Done in 0.212908 seconds.
+Done in 0.236961 seconds.
+Average time with 15 threads: 0.216458
+Done in 0.204327 seconds.
+Done in 0.216599 seconds.
+Done in 0.191575 seconds.
+Done in 0.237188 seconds.
+Done in 0.182739 seconds.
+Average time with 16 threads: 0.206486
+
+LIFO scheduler with semaphore and synchronisation variable
+Serial time reference:
+Done in 0.908492 seconds.
+Done in 0.937400 seconds.
+Done in 0.932682 seconds.
+Done in 0.934309 seconds.
+Done in 0.932997 seconds.
+Done in 0.932897 seconds.
+Average time with 1 threads: 0.934057
+Done in 0.932698 seconds.
+Done in 0.936207 seconds.
+Done in 0.935957 seconds.
+Done in 0.932790 seconds.
+Done in 0.935089 seconds.
+Average time with 2 threads: 0.934548
+Done in 0.940868 seconds.
+Done in 0.936689 seconds.
+Done in 0.935499 seconds.
+Done in 0.935460 seconds.
+Done in 0.935835 seconds.
+Average time with 3 threads: 0.93687
+Done in 0.932666 seconds.
+Done in 0.932402 seconds.
+Done in 0.935444 seconds.
+Done in 0.932753 seconds.
+Done in 0.934181 seconds.
+Average time with 4 threads: 0.933489
+Done in 0.945279 seconds.
+Done in 0.942989 seconds.
+Done in 0.942812 seconds.
+Done in 0.943080 seconds.
+Done in 0.941730 seconds.
+Average time with 5 threads: 0.943178
+Done in 0.942964 seconds.
+Done in 0.942257 seconds.
+Done in 0.943102 seconds.
+Done in 0.942945 seconds.
+Done in 0.939000 seconds.
+Average time with 6 threads: 0.942054
+Done in 0.939262 seconds.
+Done in 0.929074 seconds.
+Done in 0.935751 seconds.
+Done in 0.932972 seconds.
+Done in 0.941587 seconds.
+Average time with 7 threads: 0.935729
+Done in 0.932904 seconds.
+Done in 0.945312 seconds.
+Done in 0.929601 seconds.
+Done in 0.942264 seconds.
+Done in 0.944332 seconds.
+Average time with 8 threads: 0.938883
+Done in 0.943148 seconds.
+Done in 0.946405 seconds.
+Done in 0.950553 seconds.
+Done in 0.939478 seconds.
+Done in 0.937717 seconds.
+Average time with 9 threads: 0.94346
+Done in 0.941028 seconds.
+Done in 0.933153 seconds.
+Done in 0.943827 seconds.
+Done in 0.933111 seconds.
+Done in 0.940973 seconds.
+Average time with 10 threads: 0.938418
+Done in 0.934790 seconds.
+Done in 0.939928 seconds.
+Done in 0.937258 seconds.
+Done in 0.937426 seconds.
+Done in 0.941235 seconds.
+Average time with 11 threads: 0.938127
+Done in 0.940288 seconds.
+Done in 0.933202 seconds.
+Done in 0.947458 seconds.
+Done in 0.934251 seconds.
+Done in 0.942986 seconds.
+Average time with 12 threads: 0.939637
+Done in 0.933115 seconds.
+Done in 0.938425 seconds.
+Done in 0.936355 seconds.
+Done in 0.940180 seconds.
+Done in 0.932441 seconds.
+Average time with 13 threads: 0.936103
+Done in 0.936652 seconds.
+Done in 0.939924 seconds.
+Done in 0.939772 seconds.
+Done in 0.937082 seconds.
+Done in 0.947826 seconds.
+Average time with 14 threads: 0.940251
+Done in 0.932403 seconds.
+Done in 0.940520 seconds.
+Done in 0.938907 seconds.
+Done in 0.936721 seconds.
+Done in 0.936751 seconds.
+Average time with 15 threads: 0.93706
+Done in 0.934968 seconds.
+Done in 0.948692 seconds.
+Done in 0.941436 seconds.
+Done in 0.936295 seconds.
+Done in 0.933262 seconds.
+Average time with 16 threads: 0.938931
+
 Work-stealing scheduler
-Done in 1.012114 seconds.
-Done in 1.009899 seconds.
-Done in 1.009763 seconds.
-Done in 1.014593 seconds.
-Done in 1.007273 seconds.
-Done in 1.019006 seconds.
-Done in 1.023160 seconds.
-Done in 1.027716 seconds.
-Done in 1.008999 seconds.
-Done in 1.013527 seconds.
-Work-stealing scheduler with semaphore
-Done in 1.015592 seconds.
-Done in 1.019484 seconds.
-Done in 1.010215 seconds.
-Done in 1.007211 seconds.
-Done in 1.011288 seconds.
-Done in 1.005582 seconds.
-Done in 1.006051 seconds.
-Done in 1.002175 seconds.
-Done in 1.013509 seconds.
-Done in 1.014566 seconds.
+Serial time reference:
+Done in 0.917088 seconds.
+Done in 0.954774 seconds.
+Done in 0.950995 seconds.
+Done in 0.951190 seconds.
+Done in 0.951880 seconds.
+Done in 0.956241 seconds.
+Average time with 1 threads: 0.953016
+Done in 0.624747 seconds.
+Done in 0.952400 seconds.
+Done in 0.952433 seconds.
+Done in 0.627461 seconds.
+Done in 0.627709 seconds.
+Average time with 2 threads: 0.75695
+Done in 0.625340 seconds.
+Done in 0.628707 seconds.
+Done in 0.636050 seconds.
+Done in 0.954641 seconds.
+Done in 0.629231 seconds.
+Average time with 3 threads: 0.694794
+Done in 0.631662 seconds.
+Done in 0.959581 seconds.
+Done in 0.630027 seconds.
+Done in 0.630947 seconds.
+Done in 0.630596 seconds.
+Average time with 4 threads: 0.696563
+Done in 0.633966 seconds.
+Done in 0.635268 seconds.
+Done in 0.634314 seconds.
+Done in 0.632732 seconds.
+Done in 0.632240 seconds.
+Average time with 5 threads: 0.633704
+Done in 0.630773 seconds.
+Done in 0.517012 seconds.
+Done in 0.524793 seconds.
+Done in 0.526893 seconds.
+Done in 0.637776 seconds.
+Average time with 6 threads: 0.567449
+Done in 0.469958 seconds.
+Done in 0.463839 seconds.
+Done in 0.456302 seconds.
+Done in 0.459270 seconds.
+Done in 0.451651 seconds.
+Average time with 7 threads: 0.460204
+Done in 0.435869 seconds.
+Done in 0.404800 seconds.
+Done in 0.468213 seconds.
+Done in 0.432440 seconds.
+Done in 0.439061 seconds.
+Average time with 8 threads: 0.436077
+Done in 0.400479 seconds.
+Done in 0.440642 seconds.
+Done in 0.447207 seconds.
+Done in 0.399650 seconds.
+Done in 0.434828 seconds.
+Average time with 9 threads: 0.424561
+Done in 0.393564 seconds.
+Done in 0.435784 seconds.
+Done in 0.403154 seconds.
+Done in 0.381412 seconds.
+Done in 0.433955 seconds.
+Average time with 10 threads: 0.409574
+Done in 0.410499 seconds.
+Done in 0.408656 seconds.
+Done in 0.438367 seconds.
+Done in 0.439547 seconds.
+Done in 0.399080 seconds.
+Average time with 11 threads: 0.41923
+Done in 0.446835 seconds.
+Done in 0.438419 seconds.
+Done in 0.416575 seconds.
+Done in 0.441439 seconds.
+Done in 0.433336 seconds.
+Average time with 12 threads: 0.435321
+Done in 0.453787 seconds.
+Done in 0.992353 seconds.
+Done in 0.442881 seconds.
+Done in 0.409375 seconds.
+Done in 0.455157 seconds.
+Average time with 13 threads: 0.550711
+Done in 0.431032 seconds.
+Done in 0.447341 seconds.
+Done in 0.449121 seconds.
+Done in 0.446137 seconds.
+Done in 0.450461 seconds.
+Average time with 14 threads: 0.444818
+Done in 0.376358 seconds.
+Done in 0.995682 seconds.
+Done in 0.450989 seconds.
+Done in 0.452220 seconds.
+Done in 0.443097 seconds.
+Average time with 15 threads: 0.543669
+Done in 0.456414 seconds.
+Done in 0.450101 seconds.
+Done in 0.461966 seconds.
+Done in 0.456067 seconds.
+Done in 0.459416 seconds.
+Average time with 16 threads: 0.456793
+
+Work-stealing scheduler with semaphore and synchronisation variable
+Serial time reference:
+Done in 0.909745 seconds.
+Done in 0.941293 seconds.
+Done in 0.940327 seconds.
+Done in 0.940455 seconds.
+Done in 0.941435 seconds.
+Done in 0.939429 seconds.
+Average time with 1 threads: 0.940588
+Done in 1.215822 seconds.
+Done in 1.219128 seconds.
+Done in 1.216194 seconds.
+Done in 1.215833 seconds.
+Done in 0.946026 seconds.
+Average time with 2 threads: 1.162601
+Done in 1.224594 seconds.
+Done in 1.225988 seconds.
+Done in 1.227426 seconds.
+Done in 1.224969 seconds.
+Done in 1.225976 seconds.
+Average time with 3 threads: 1.225791
+Done in 1.223295 seconds.
+Done in 0.950070 seconds.
+Done in 1.225760 seconds.
+Done in 1.225875 seconds.
+Done in 0.947416 seconds.
+Average time with 4 threads: 1.114483
+Done in 0.964249 seconds.
+Done in 1.232174 seconds.
+Done in 1.234501 seconds.
+Done in 0.952917 seconds.
+Done in 0.957733 seconds.
+Average time with 5 threads: 1.068315
+Done in 1.244357 seconds.
+Done in 0.956154 seconds.
+Done in 1.250889 seconds.
+Done in 1.248823 seconds.
+Done in 1.240865 seconds.
+Average time with 6 threads: 1.188218
+Done in 1.240157 seconds.
+Done in 1.253440 seconds.
+Done in 0.966950 seconds.
+Done in 1.254292 seconds.
+Done in 0.958397 seconds.
+Average time with 7 threads: 1.134647
+Done in 1.247029 seconds.
+Done in 0.977371 seconds.
+Done in 0.979534 seconds.
+Done in 0.974288 seconds.
+Done in 0.973880 seconds.
+Average time with 8 threads: 1.03042
+Done in 0.980188 seconds.
+Done in 0.965790 seconds.
+Done in 0.977526 seconds.
+Done in 0.980804 seconds.
+Done in 0.981492 seconds.
+Average time with 9 threads: 0.97716
+Done in 0.973873 seconds.
+Done in 0.977252 seconds.
+Done in 0.977698 seconds.
+Done in 1.252450 seconds.
+Done in 0.978080 seconds.
+Average time with 10 threads: 1.031871
+Done in 0.969155 seconds.
+Done in 0.983068 seconds.
+Done in 1.269568 seconds.
+Done in 0.978958 seconds.
+Done in 0.983270 seconds.
+Average time with 11 threads: 1.036804
+Done in 0.990714 seconds.
+Done in 0.987647 seconds.
+Done in 0.976476 seconds.
+Done in 0.984335 seconds.
+Done in 0.980807 seconds.
+Average time with 12 threads: 0.983996
+Done in 0.992166 seconds.
+Done in 0.986534 seconds.
+Done in 0.991422 seconds.
+Done in 0.989370 seconds.
+Done in 0.991944 seconds.
+Average time with 13 threads: 0.990287
+Done in 0.987818 seconds.
+Done in 0.993621 seconds.
+Done in 0.994674 seconds.
+Done in 1.272219 seconds.
+Done in 0.997714 seconds.
+Average time with 14 threads: 1.049209
+Done in 0.992389 seconds.
+Done in 0.998576 seconds.
+Done in 0.995781 seconds.
+Done in 0.996591 seconds.
+Done in 0.988625 seconds.
+Average time with 15 threads: 0.994392
+Done in 0.995465 seconds.
+Done in 1.001876 seconds.
+Done in 0.999600 seconds.
+Done in 1.040459 seconds.
+Done in 1.000423 seconds.
+Average time with 16 threads: 1.007565
+
