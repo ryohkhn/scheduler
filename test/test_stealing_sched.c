@@ -15,7 +15,7 @@ void stacking_up(void *closure, struct scheduler *s) {
     struct testArg *ar = (struct testArg *) closure;
     int n = ar->n;
     printf("Stacking up, n: %d!\n", n);
-    if (n < 15) {
+    if (n < 150000) {
         struct testArg *new_ar = malloc(sizeof (struct testArg));
         new_ar->n = n + 1;
         sched_spawn(stacking_up, new_ar, s);

@@ -14,7 +14,9 @@ TESTS_DIR = test
 
 OUT_DIR = out
 
-TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem test_stealing_sched
+LDLIBS = `pkg-config --libs gtk4`
+
+TESTS = test_stack test_deque test_dumb_sched test_dumb_sched_sem concurrent_test test_dumb_quicksort test_dumb_quicksort_sem test_stealing_sched test_mandelbrot_dumb
 
 all: test
 
@@ -57,6 +59,12 @@ concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/dumb_sched.o $(BU
 
 test_stealing_sched: $(TESTS_DIR)/test_stealing_sched.c $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
+
+$(BUILD_DIR)/mandelbrot_dumb.o: $(TESTS_DIR)/mandelbrot.c
+	$(CC) $(CFLAGS) $(FAST) -ffast-math `pkg-config --cflags gtk4` -c -o $(BUILD_DIR)/mandelbrot_dumb.o $(TESTS_DIR)/mandelbrot.c
+
+test_mandelbrot_dumb: $(BUILD_DIR)/mandelbrot_dumb.o $(BUILD_DIR)/dumb_sched.o
+	$(CC) $(BUILD_DIR)/mandelbrot_dumb.o $(BUILD_DIR)/dumb_sched.o $(BUILD_DIR)/stack.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_dumb
 
 test: $(TESTS)
 
