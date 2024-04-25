@@ -5,18 +5,20 @@ import os
 import psutil
 import time
 
-nth_iterations = 5
+nth_iterations = 2
 max_threads = 16
 og_dir = os.getcwd()
 output_index_time = 2
 
 num_processors = os.cpu_count()
-print("Number of online processors (CPU cores):", num_processors)
+if max_threads > num_processors:
+    max_threads = num_processors
 
 programs_names = [
-    ("LIFO scheduler","test_dumb_quicksort"),
-    ("LIFO scheduler with semaphore and synchronisation variable", "test_dumb_quicksort_sem"),
+    ("LIFO scheduler","test_lifo_quicksort"),
+    ("LIFO scheduler with semaphore and synchronisation variable", "test_lifo_quicksort_sem"),
     ("Work-stealing scheduler", "test_stealing_quicksort"),
+    ("Work-stealing scheduler with condition variable", "test_stealing_quicksort_cond"),
     ("Work-stealing scheduler with semaphore and synchronisation variable", "test_stealing_quicksort_sem")
 ]
 
@@ -24,10 +26,11 @@ os.chdir("..")
 
 print("Compiling files...")
 
-compile_progs_args = ' '.join(program[1] for program in programs_names)
+subprocess.run(["/usr/bin/make", "clean"], stdout=subprocess.DEVNULL)
 
-cmd = ["/usr/bin/make", compile_progs_args]
-subprocess.run(cmd, shell = True, stdout=subprocess.DEVNULL)
+cmd = ["/usr/bin/make"] + [program[1] for program in programs_names]
+
+subprocess.run(cmd, stdout=subprocess.DEVNULL)
 
 os.chdir(og_dir)
 

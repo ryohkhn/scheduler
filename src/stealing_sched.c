@@ -12,7 +12,7 @@ struct scheduler {
     int qlen; // Maximum number of tasks
     pthread_t *threads;
 
-    int nth_sleeping_threads;
+    int num_sleeping_threads;
     pthread_mutex_t sleep_mutex;
 
     struct deque **deques;
@@ -83,6 +83,7 @@ int steal_work(struct scheduler *sched, struct deque *dq, int thread_id) {
     }
     while (next_thread != random_thread);
 
+    pthread_mutex_lock(&sched->deques_mutexes[thread_id]);
     return 0;
 }
 
@@ -99,8 +100,8 @@ void *gaming_time(void* args) {
                 break;
             else {
                 pthread_mutex_lock(&sched->sleep_mutex);
-                sched->nth_sleeping_threads++;
-                if (sched->nth_sleeping_threads >= sched->nthreads) {
+                sched->num_sleeping_threads++;
+                if (sched->num_sleeping_threads >= sched->nthreads) {
                     pthread_mutex_unlock(&sched->deques_mutexes[id]);
                     pthread_mutex_unlock(&sched->sleep_mutex);
                     return NULL;
@@ -111,7 +112,7 @@ void *gaming_time(void* args) {
                 usleep(1000);
 
                 pthread_mutex_lock(&sched->sleep_mutex);
-                sched->nth_sleeping_threads--;
+                sched->num_sleeping_threads--;
                 pthread_mutex_unlock(&sched->sleep_mutex);
                 pthread_mutex_lock(&sched->deques_mutexes[id]);
             }
@@ -154,7 +155,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         return -1;
     }
     sched.qlen = qlen;
-    sched.nth_sleeping_threads = 0;
+    sched.num_sleeping_threads = 0;
 
     for (int id = 0; id < sched.nthreads; ++id) {
         struct deque *dq = deque_init();

@@ -36,16 +36,15 @@ void *slippy_time(void *args) {
             if (sem_trywait(&s->sem)) {
                 // Other threads are working so tasks might get added, we go to sleep until we get spawned
                 pthread_cond_wait(&s->cond_var, &s->mutex);
-                sem_post(&s->sem);
             }
             else {
                 // We inform every thread waiting that no more work is available
+                sem_post(&s->sem);
                 pthread_cond_broadcast(&s->cond_var);
                 pthread_mutex_unlock(&s->mutex);
                 return NULL; // No threads are working and there are no tasks left = end of threads/scheduler
             }
         }
-
         sem_post(&s->sem);
         struct work w = pop(s->tasks);
         pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack

@@ -89,6 +89,7 @@ int steal_work(struct scheduler *sched, struct deque *dq, int thread_id) {
     }
     while (next_thread != random_thread);
 
+    pthread_mutex_lock(&sched->deques_mutexes[thread_id]);
     return 0;
 }
 
@@ -106,16 +107,16 @@ void *gaming_time(void* args) {
             else {
                 if (sem_trywait(&sched->sem)) {
                     pthread_cond_wait(&sched->cond_var, &sched->deques_mutexes[id]);
-                    sem_post(&sched->sem);
                 }
                 else {
+                    sem_post(&sched->sem);
                     pthread_cond_broadcast(&sched->cond_var);
                     pthread_mutex_unlock(&sched->deques_mutexes[id]);
-                    sem_post(&sched->sem);
                     return NULL;
                 }
             }
         }
+        sem_post(&sched->sem);
         struct work w = pop_bottom(dq);
         pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
