@@ -10,6 +10,9 @@ max_threads = 16
 og_dir = os.getcwd()
 output_index_time = 2
 
+num_processors = os.cpu_count()
+print("Number of online processors (CPU cores):", num_processors)
+
 programs_names = [
     ("LIFO scheduler","test_dumb_quicksort"),
     ("LIFO scheduler with semaphore and synchronisation variable", "test_dumb_quicksort_sem"),
@@ -20,14 +23,15 @@ programs_names = [
 os.chdir("..")
 
 print("Compiling files...")
-for prog in programs_names:
-    cmd = ["/usr/bin/make", prog[1]]
-    subprocess.run(cmd, shell = True, stdout=subprocess.DEVNULL)
+
+compile_progs_args = ' '.join(program[1] for program in programs_names)
+
+cmd = ["/usr/bin/make", compile_progs_args]
+subprocess.run(cmd, shell = True, stdout=subprocess.DEVNULL)
 
 os.chdir(og_dir)
 
-results = [[0.0] * (max_threads + 1) for _ in range(len(programs_names))]
-
+results = [[None] * (max_threads + 1) for _ in range(len(programs_names))]
 
 def launch_prog(pair, args):
     cmd = "../out/" + pair[1]
