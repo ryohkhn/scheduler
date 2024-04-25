@@ -81,7 +81,7 @@ static void *calculate_thread(void *arg) {
     calculate(p -> x1, p -> x2, p -> y1, p -> y2, p -> data, p -> stride);
     return arg;
 }
-void *calculate_thread_bis(void *closure, struct scheduler *s) {
+void *calculate_thread_bis(void *closure, struct scheduler *) {
     struct param *p = (struct param *) closure;
     calculate(p -> x1, p -> x2, p -> y1, p -> y2, p -> data, p -> stride);
     return closure;
