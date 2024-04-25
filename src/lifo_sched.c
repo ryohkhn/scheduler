@@ -16,6 +16,9 @@ struct scheduler {
     pthread_cond_t cond_var;
     struct stack *tasks;
 };
+int get_nbthreads(struct scheduler *s) {
+    return s->nthreads;
+}
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);

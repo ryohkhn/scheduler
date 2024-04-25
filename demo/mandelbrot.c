@@ -6,6 +6,7 @@
 #include <gtk/gtk.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <semaphore.h>
 
 #include "../include/sched.h"
 
@@ -13,6 +14,8 @@
 
 static double scale;
 static int dx, dy;
+
+int nthreads;
 
 struct param {
     double x1;
@@ -76,20 +79,15 @@ static void calculate(double x1, double x2, double y1, double y2, unsigned *data
         }
     }
 }
-static void *calculate_thread(void *arg) {
-    struct param *p = (struct param *) arg;
-    calculate(p -> x1, p -> x2, p -> y1, p -> y2, p -> data, p -> stride);
-    return arg;
-}
-void *calculate_thread_bis(void *closure, struct scheduler *) {
+
+void calculate_thread_bis(void *closure, struct scheduler *) {
     struct param *p = (struct param *) closure;
     calculate(p -> x1, p -> x2, p -> y1, p -> y2, p -> data, p -> stride);
-    return closure;
 }
-void *calculate_sched(void *closure, struct scheduler *s) {
+void calculate_sched(void *closure, struct scheduler *s) {
     struct init_param *info = (struct init_param *) closure;
-    int increment = (info->y2 - info->y1) / (double) 4;
-    for (int i = 0; i < 4; i++) {
+    int increment = (info->y2 - info->y1) / (double) get_nbthreads(s);
+    for (int i = 0; i < get_nbthreads(s); i++) {
         struct param *args = malloc(sizeof (struct param));
         args -> x1 = info->x1;
         args -> x2 = info->x2;
@@ -107,6 +105,7 @@ static void draw_cb(
         int height,
         gpointer closure)
 {
+    printf("drawing\n");
     double x1, y1, x2, y2;
     struct timespec t0, t1;
 
@@ -130,37 +129,11 @@ static void draw_cb(
     info->data = data;
     info->stride = stride;
 
-    if (sched_init(4, 50, calculate_sched, info) == -1) {
+    if (sched_init(nthreads, 50, calculate_sched, info) == -1) {
         perror("Failed to init sched");
         exit(1);
     }
     free(info);
-//    for (int i = 0; i < nb_thread; i++) {
-//        struct param *args = malloc(sizeof (struct param));
-//        args -> x1 = x1;
-//        args -> x2 = x2;
-//        args -> y1 = y1 + (increment * i);
-//        args -> y2 = y1 + (increment * (i + 1));
-//        args -> data = &data[(i * increment) * stride / 4];
-//        args -> stride = stride;
-//        pthread_create(&threads[i], NULL, calculate_thread, args);
-////        calculate(
-////            x1,
-////            x2,
-////            y1 + (increment * i),
-////            y1 + (increment * (i + 1)),
-////            &data[(i * increment) * stride / 4],
-////            stride
-////        );
-//        printf("y1: %f\ny2: %f\n", y1 + (increment * i), y1 + (increment * (i + 1)));
-//    }
-//    void *arg;
-//    for (int i = 0; i < nb_thread; i++) {
-//        if (pthread_join(threads[i], &arg) != 0) {
-//            perror("Failed to join thread");
-//            exit(1);
-//        }
-//    }
 
     cairo_surface_mark_dirty(surface);
     cairo_set_source_surface(cr, surface, x1, y1);
@@ -238,15 +211,24 @@ activate(GtkApplication* app, gpointer user_data)
     gtk_widget_show(window);
 }
 
-int
-main(int argc, char **argv)
-{
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        nthreads = atoi(argv[1]);
+        if (nthreads <= 0) {
+            nthreads = sched_default_threads();
+        }
+    } else {
+        nthreads = sched_default_threads();
+    }
+    printf("nthreads set to: %d\n", nthreads);
+
+
     GtkApplication *app;
     int status;
 
     app = gtk_application_new("fr.irif.jch.mandelbrot", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
-    status = g_application_run(G_APPLICATION(app), argc, argv);
+    status = g_application_run(G_APPLICATION(app), 1, &argv[0]);
     g_object_unref(app);
 
     return status;

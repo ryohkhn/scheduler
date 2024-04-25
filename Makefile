@@ -16,10 +16,10 @@ DEMOS_DIR = demo
 
 OUT_DIR = out
 
-LDLIBS = `pkg-config --cflags --libs gtk+-3.0`
+LDLIBS = `pkg-config --cflags --libs gtk4`
 
 # TESTS = test_stack test_deque test_lifo_sched test_lifo_sched_sem concurrent_test test_lifo_quicksort test_lifo_quicksort_sem test_stealing_sched test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond
-TESTS = test_lifo_quicksort test_lifo_quicksort_sem test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond test_mandelbrot_lifo test_mandelbrot_stealing_cond
+TESTS = test_lifo_quicksort test_lifo_quicksort_sem test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond test_mandelbrot_lifo test_mandelbrot_stealing
 
 BENCHMARK_FILE = quicksort.c
 
@@ -45,8 +45,8 @@ $(BUILD_DIR)/stealing_sched_sem.o: $(SRCS_DIR)/stealing_sched_sem.c $(BUILD_DIR)
 $(BUILD_DIR)/stealing_sched_cond.o: $(SRCS_DIR)/stealing_sched_cond.c $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/mandelbrot.o: $(DEMOS_DIR)/mandelbrot.c
-	$(CC) $(CFLAGS) -ffast-math $(LDLIBS) -c $< -o $@
+#$(BUILD_DIR)/mandelbrot.o: $(DEMOS_DIR)/mandelbrot.c
+#	$(CC) $(CFLAGS) -ffast-math $(LDLIBS) -c $< -o $@
 
 # Tests and dependencies
 
@@ -87,17 +87,21 @@ test_stealing_quicksort_sem: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealin
 
 # Demos and dependencies
 
-# $(BUILD_DIR)/test_mandelbrot_lifo.o: $(DEMOS_DIR)/mandelbrot.c $(INCLUDE)/sched.h $(SRCS_DIR)/lifo_sched.c
-#	$(CC) $(CFLAGS) -ffast-math `pkg-config --cflags gtk4` -c -o $(BUILD_DIR)/mandelbrot_lifo.o $(DEMOS_DIR)/mandelbrot.c
-
-# test_mandelbrot_lifo: $(BUILD_DIR)/test_mandelbrot_lifo.o $(BUILD_DIR)/lifo_sched.o
-#	$(CC) $(BUILD_DIR)/test_mandelbrot_lifo.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_dumb
+$(BUILD_DIR)/mandelbrot.o: $(DEMOS_DIR)/mandelbrot.c
+	$(CC) -Wall $(FAST) -ffast-math `pkg-config --cflags gtk4` -c -o $(BUILD_DIR)/mandelbrot.o $(DEMOS_DIR)/mandelbrot.c
 
 test_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $(LDLIBS) $^ -o $(OUT_DIR)/$@
+	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_lifo
 
-test_mandelbrot_stealing_cond: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched_cond.o $(BUILD_DIR)/deque.o
-	$(CC) $(CFLAGS) $(LDLIBS) $^ -o $(OUT_DIR)/$@
+test_mandelbrot_stealing: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_stealing
+
+
+#test_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
+#	$(CC) $(CFLAGS) $(LDLIBS) $^ -o $(OUT_DIR)/$@
+
+#test_mandelbrot_stealing_cond: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched_cond.o $(BUILD_DIR)/deque.o
+#	$(CC) $(CFLAGS) $(LDLIBS) $^ -o $(OUT_DIR)/$@
 
 test: $(TESTS)
 

@@ -25,6 +25,10 @@ struct args_pack {
     int thread_id;
 };
 
+int get_nbthreads(struct scheduler *s) {
+    return s->nthreads;
+}
+
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
     pthread_mutex_destroy(&sched->sleep_mutex);
