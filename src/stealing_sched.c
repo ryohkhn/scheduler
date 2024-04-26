@@ -25,6 +25,7 @@ struct args_pack {
     int thread_id;
 };
 
+
 int get_nbthreads(struct scheduler *s) {
     return s->nthreads;
 }

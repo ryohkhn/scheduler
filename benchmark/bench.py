@@ -5,18 +5,22 @@ import os
 import psutil
 import time
 
-nth_iterations = 2
-max_threads = 4
+nth_iterations = 4
+max_threads = 6
 output_index_time = 2
 num_processors = os.cpu_count()
 
 
 programs_names = [
-    ("LIFO scheduler","test_lifo_quicksort"),
-    ("LIFO scheduler with semaphore and synchronization variable", "test_lifo_quicksort_sem"),
+    #("LIFO scheduler","test_lifo_quicksort"),
+    #("LIFO scheduler with semaphore and synchronization variable", "test_lifo_quicksort_sem"),
+    #("Work-stealing scheduler", "test_stealing_quicksort"),
+    #("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
+    #("Work-stealing scheduler with semaphore and synchronization variable", "test_stealing_quicksort_sem")
     ("Work-stealing scheduler", "test_stealing_quicksort"),
-    ("Work-stealing scheduler with condition variable", "test_stealing_quicksort_cond"),
-    ("Work-stealing scheduler with semaphore and synchronization variable", "test_stealing_quicksort_sem")
+    ("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
+    ("Work-stealing scheduler with 1 wait time var", "test_stealing_quicksort_opt"),
+    ("Work-stealing scheduler with one time var for each thread", "test_stealing_quicksort_opt_multiple")
 ]
 
 results = [[[None for _ in range(nth_iterations)] for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
@@ -126,5 +130,5 @@ if __name__ == "__main__":
     compile_files()
     launch_bench()
     print(results)
-    generate_images()
-    generate_csv_data()
+    # generate_images()
+    # generate_csv_data()
