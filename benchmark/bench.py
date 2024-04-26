@@ -2,13 +2,14 @@
 
 import subprocess
 import os
-import psutil
 import time
+import argparse
 
 nth_iterations = 4
-max_threads = 6
+max_threads = 16
 output_index_time = 2
 num_processors = os.cpu_count()
+output_csv_filename = "benchmark_results.csv"
 
 
 programs_names = [
@@ -23,9 +24,6 @@ programs_names = [
     ("Work-stealing scheduler with one time var for each thread", "test_stealing_quicksort_opt_multiple")
 ]
 
-results = [[[None for _ in range(nth_iterations)] for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
-results_avg = [[None] * (max_threads + 1) for _ in range(len(programs_names))]
-
 
 def compile_files():
     og_dir = os.getcwd()
@@ -37,51 +35,47 @@ def compile_files():
     os.chdir(og_dir)
 
 
-def launch_prog(pair, args):
+def launch_prog(pair, prog_args):
     cmd = "../out/" + pair[1]
-    result = subprocess.run([cmd, args], stdout=subprocess.PIPE)
+    result = subprocess.run([cmd, prog_args], stdout=subprocess.PIPE)
     s = result.stdout.decode().split()
-    res = float(s[output_index_time])
-    # f.write(result.stdout.decode())
-    return res
+    return float(s[output_index_time])
 
 
-def launch_bench():
-    print(f"Executing benchmark with {nth_iterations} iterations, from 1 to {max_threads} threads")
+def launch_bench(results, results_avg):
+    if max_threads == 0:
+        print(f"Executing benchmark in serial")
+    elif max_threads == 1:
+        print(f"Executing benchmark with {nth_iterations} iterations, with 1 thead")
+    else:
+        print(f"Executing benchmark with {nth_iterations} iterations, from 1 to {max_threads} threads")
+
     for count, pair in enumerate(programs_names):
-        # f.write(pair[0] + "\n")
-
         # Launch serial reference
-        # f.write("Serial time reference:\n")
-        args = "-s"
-        serial_res = launch_prog(pair, args)
-        results_avg[count][0] = serial_res
-        results[count][0][0] = serial_res
-
-        for i in range(1, max_threads + 1):
+        for i in range(max_threads + 1):
             program_bench_sum = 0.
             for j in range(nth_iterations):
-                # Launch program with each threads from 1 to max_threads
-                args = "-t " + str(i)
-                res = launch_prog(pair, args)
-                program_bench_sum += res
-                results[count][i][j] = res
+                # Launch program with each threads from 0 to max_threads
+                if i == 0:
+                    prog_args = "-s"
+                else:
+                    prog_args = "-t " + str(i)
+                done_time = launch_prog(pair, prog_args)
+                program_bench_sum += done_time
+                results[count][i][j] = done_time
                 time.sleep(0.3)
             average_time = round(program_bench_sum / nth_iterations, 6)
             results_avg[count][i] = average_time
-            # f.write("Average time with " + str(i) + " threads: " + str(average_time) + "\n")
-        # f.write("\n")
 
 
-min_x_axis = 0
-max_x_axis = max_threads + 1
-min_y_axis = 0
-max_y_axis = 1.5
-
-
-def generate_images():
+def generate_images(results, results_avg):
     import matplotlib.pyplot as plt
     import numpy as np
+    min_x_axis = 0
+    max_x_axis = max_threads + 1
+    min_y_axis = 0
+    max_value = max(max(sublist) for sublist in results)
+    max_y_axis = max_value[0] + 0.5
 
     for i, values in enumerate(results_avg):
         program_name = programs_names[i][1].replace(" ", "_")
@@ -104,10 +98,8 @@ def generate_images():
         plt.close()
 
 
-output_csv_filename = "benchmark_results.csv"
-
-
-def generate_csv_data():
+# TODO Fix csv generation
+def generate_csv_data(results):
     import csv
 
     for i, sub_array in enumerate(results):
@@ -125,10 +117,30 @@ def generate_csv_data():
 
 
 if __name__ == "__main__":
-    if max_threads > num_processors:
+    parser = argparse.ArgumentParser(description='Script to launch the schedulars benchmarks')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-t', type=int, help="Run with t threads")
+    group.add_argument('-s', action="store_true", help="Run in serial")
+    parser.add_argument('-img', action="store_true", help="Generate image graphs")
+    parser.add_argument('-i', type=int, help="Number of iterations for each benchmark")
+    args = parser.parse_args()
+
+    if args.t:
+        max_threads = args.t
+        if max_threads > num_processors:
+            max_threads = num_processors
+    elif args.s:
+        max_threads = 0
+    else:
         max_threads = num_processors
+    if args.i:
+        nth_iterations = args.i
     compile_files()
-    launch_bench()
-    print(results)
-    # generate_images()
-    # generate_csv_data()
+    res = [[[None for _ in range(nth_iterations)] for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
+    res_avg = [[None for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
+    launch_bench(res, res_avg)
+    print(res)
+    print(res_avg)
+    if args.img:
+        generate_images(res, res_avg)
+    generate_csv_data(res)
