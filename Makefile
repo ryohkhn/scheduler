@@ -18,10 +18,12 @@ OUT_DIR = out
 
 LDLIBS = `pkg-config --cflags --libs gtk4`
 
+RAYLIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+
 # TESTS = test_stack test_deque test_lifo_sched test_lifo_sched_sem concurrent_test test_lifo_quicksort test_lifo_quicksort_sem test_stealing_sched test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond
 TESTS = test_lifo_quicksort test_lifo_quicksort_sem test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond test_stealing_quicksort_opt test_stealing_quicksort_opt_multiple
 
-DEMOS =  test_mandelbrot_lifo test_mandelbrot_stealing
+DEMOS =  test_mandelbrot_lifo test_mandelbrot_stealing test_raylib
 
 BENCHMARK_FILE = quicksort.c
 
@@ -104,12 +106,17 @@ test_stealing_quicksort_opt_multiple: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR
 $(BUILD_DIR)/mandelbrot.o: $(DEMOS_DIR)/mandelbrot.c
 	$(CC) -Wall $(FAST) -ffast-math `pkg-config --cflags gtk4` -c -o $(BUILD_DIR)/mandelbrot.o $(DEMOS_DIR)/mandelbrot.c
 
+$(BUILD_DIR)/test_raylib.o: $(DEMOS_DIR)/test_raylib.c
+	$(CC) -Wall $(FAST) $(RAYLIBS) -c -o $(BUILD_DIR)/test_raylib.o $(DEMOS_DIR)/test_raylib.c
+
 test_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_lifo
 
 test_mandelbrot_stealing: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_stealing
 
+test_raylib: $(BUILD_DIR)/test_raylib.o
+	$(CC) $(BUILD_DIR)/test_raylib.o $(RAYLIBS) -o $(OUT_DIR)/test_raylib
 
 #test_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 #	$(CC) $(CFLAGS) $(LDLIBS) $^ -o $(OUT_DIR)/$@
