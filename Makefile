@@ -115,8 +115,8 @@ test_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUIL
 test_mandelbrot_stealing: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o `pkg-config --libs gtk4` -o $(OUT_DIR)/test_mandelbrot_stealing
 
-test_raylib: $(BUILD_DIR)/test_raylib.o
-	$(CC) $(BUILD_DIR)/test_raylib.o $(RAYLIBS) -o $(OUT_DIR)/test_raylib
+test_raylib: $(BUILD_DIR)/test_raylib.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
+	$(CC) $(BUILD_DIR)/test_raylib.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o $(RAYLIBS) -o $(OUT_DIR)/test_raylib
 
 #test_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 #	$(CC) $(CFLAGS) $(LDLIBS) $^ -o $(OUT_DIR)/$@
