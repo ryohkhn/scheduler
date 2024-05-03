@@ -91,6 +91,13 @@ def generate_images(results, results_avg):
         plt.savefig(f'{program_name}_plot.png')
         plt.close()
 
+    for i, avg in enumerate(results_avg):
+        plt.plot(avg, label=programs_names[i][0], linewidth=2)
+
+    plt.legend()
+    plt.savefig('combined_schedulers.png')
+    plt.close()
+
 
 def generate_csv_data(results, results_avg):
     import csv
@@ -102,7 +109,6 @@ def generate_csv_data(results, results_avg):
             writer.writerow([programs_names[i][0] + " (average at " + str(nth_iterations) + " iteration(s))", ""])
             writer.writerow("")
             writer.writerow([""] * (nth_iterations + 2) + ["Average"])
-            # writer.writerow(["Threads", "Time in seconds", ""])
             writer.writerow("")
             for j, arr in enumerate(sub_array):
                 if j == 0:
