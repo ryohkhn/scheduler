@@ -64,21 +64,16 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
 
 int steal_work(struct scheduler *sched, struct deque *dq, int thread_id) {
     pthread_mutex_unlock(&sched->deques_mutexes[thread_id]);
-    // Prevent from infinite looping when the scheduler is serial
     if (sched->nthreads == 1) return 0;
-    // printf("Thread_t %d is a thief\n", thread_id);
     seed_rand();
     int random_thread = next_thread_id(rand(), sched->nthreads, thread_id);
     int next_thread = random_thread;
-    // printf("Stealer chose thread_t %d\n", random_thread);
 
     do {
         struct deque *rand_dq = sched->deques[next_thread];
-        // printf("Stealer checks thread_t %d\n", next_thread);
         pthread_mutex_lock(&sched->deques_mutexes[next_thread]);
 
         if (!is_empty(rand_dq)) {
-            // printf("Stealer found labor in thread_t %d !!\n", next_thread);
             struct work w = pop_top(rand_dq);
             pthread_mutex_unlock(&sched->deques_mutexes[next_thread]);
             pthread_mutex_lock(&sched->deques_mutexes[thread_id]);
@@ -158,11 +153,13 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     }
     sched.qlen = qlen;
 
+    for (int i = 0; i < sched.nthreads; ++i) {
+        pthread_mutex_init(&sched.deques_mutexes[i], NULL);
+        sched.deques[i] = deque_init();
+    }
+
     for (int id = 0; id < sched.nthreads; ++id) {
-        struct deque *dq = deque_init();
-        sched.deques[id] = dq;
-        struct args_pack argsPack = {&sched, dq, id};
-        pthread_mutex_init(&sched.deques_mutexes[id], NULL);
+        struct args_pack argsPack = {&sched, sched.deques[id], id};
         if(pthread_create(&sched.threads[id], NULL,gaming_time, &argsPack) != 0) {
             fprintf(stderr, "Failed to create thread\n");
             return -1;

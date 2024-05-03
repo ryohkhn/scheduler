@@ -182,11 +182,13 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     sched.initial_wait_time = 1000;
     memset(sched.wait_time, sched.initial_wait_time, sched.nthreads);
 
+    for (int i = 0; i < sched.nthreads; ++i) {
+        pthread_mutex_init(&sched.deques_mutexes[i], NULL);
+        sched.deques[i] = deque_init();
+    }
+
     for (int id = 0; id < sched.nthreads; ++id) {
-        struct deque *dq = deque_init();
-        sched.deques[id] = dq;
-        struct args_pack argsPack = {&sched, dq, id};
-        pthread_mutex_init(&sched.deques_mutexes[id], NULL);
+        struct args_pack argsPack = {&sched, sched.deques[id], id};
         if(pthread_create(&sched.threads[id], NULL,gaming_time, &argsPack) != 0) {
             fprintf(stderr, "Failed to create thread\n");
             return -1;
@@ -195,7 +197,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
 
     if (!sched_spawn(f, closure, &sched)) {
         fprintf(stderr, "Failed to create the inital task\n");
-        // cleanup_sched(&sched);
         return -1;
     }
 

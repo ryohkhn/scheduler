@@ -21,7 +21,7 @@ LDLIBS = `pkg-config --cflags --libs gtk4`
 RAYLIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 # TESTS = test_stack test_deque test_lifo_sched test_lifo_sched_sem concurrent_test test_lifo_quicksort test_lifo_quicksort_sem test_stealing_sched test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond
-TESTS = test_lifo_quicksort test_lifo_quicksort_sem test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond test_stealing_quicksort_opt test_stealing_quicksort_opt_multiple
+TESTS = test_lifo_quicksort test_stealing_quicksort test_stealing_quicksort_sem test_stealing_quicksort_cond test_stealing_quicksort_opt test_stealing_quicksort_opt_multiple
 
 DEMOS =  test_mandelbrot_lifo test_mandelbrot_stealing test_raylib
 
@@ -35,9 +35,6 @@ $(BUILD_DIR)/%.o: $(SRCS_DIR)/%.c
 
 # Specific rules for files with dependencies
 $(BUILD_DIR)/lifo_sched.o: $(SRCS_DIR)/lifo_sched.c $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(BUILD_DIR)/lifo_sched_sem.o: $(SRCS_DIR)/lifo_sched_sem.c $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/stealing_sched.o: $(SRCS_DIR)/stealing_sched.c $(BUILD_DIR)/deque.o
@@ -69,9 +66,6 @@ test_deque: $(TESTS_DIR)/test_deque.c $(BUILD_DIR)/deque.o
 test_lifo_sched: $(TESTS_DIR)/test_lifo_sched.c $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
-test_lifo_sched_sem: $(TESTS_DIR)/test_lifo_sched.c $(BUILD_DIR)/lifo_sched_sem.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
-
 concurrent_test: $(TESTS_DIR)/concurrent_tester.c $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
@@ -81,9 +75,6 @@ test_stealing_sched: $(TESTS_DIR)/test_stealing_sched.c $(BUILD_DIR)/stealing_sc
 # Benchmarks
 
 test_lifo_quicksort: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
-	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
-
-test_lifo_quicksort_sem: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched_sem.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 test_stealing_quicksort: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
