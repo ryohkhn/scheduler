@@ -16,6 +16,7 @@ struct scheduler {
     pthread_cond_t cond_var;
     struct stack *tasks;
 };
+
 int get_nbthreads(struct scheduler *s) {
     return s->nthreads;
 }
@@ -66,7 +67,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     sched.tasks = stack_init();
     if (!sched.tasks) {
         fprintf(stderr, "Failed to initialize the stack\n");
-        // cleanup_pthread_vars(&sched);
         return -1;
     }
 
@@ -78,26 +78,20 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     sched.threads = malloc(sizeof(pthread_t) * sched.nthreads);
     if (!sched.threads) {
         fprintf(stderr, "Failed to malloc threads array\n");
-        // free(sched.tasks);
-        // cleanup_pthread_vars(&sched);
         return -1;
     }
     sched.qlen = qlen;
     sched.nth_sleeping_threads = 0;
 
-    // printf("Unlocking mutex, nb threads: %d, is_empty: %d\n", sched.nthreads, is_empty(sched.tasks));
-
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_create(&sched.threads[i], NULL,slippy_time, &sched) != 0) {
             fprintf(stderr, "Failed to create thread\n");
-            // cleanup_sched(&sched);
             return -1;
         }
     }
 
     if (!sched_spawn(f, closure, &sched)) {
         fprintf(stderr, "Failed to create the inital task\n");
-        // cleanup_sched(&sched);
         return -1;
     }
 
@@ -105,7 +99,6 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_join(sched.threads[i], arg) != 0) {
             fprintf(stderr, "Failed to join thread\n");
-            // cleanup_sched(&sched);
             return -1;
         }
     }

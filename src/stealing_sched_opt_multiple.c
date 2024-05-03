@@ -149,7 +149,6 @@ void *gaming_time(void* args) {
     }
 }
 
-// TODO CHECK MALLOC & SYSTEM CALLS
 // Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;

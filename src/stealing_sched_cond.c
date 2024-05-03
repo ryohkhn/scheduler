@@ -123,14 +123,13 @@ void *gaming_time(void* args) {
         taskfunc f = w.f;
         void *closure = w.closure;
 
-        // steal_work locks the deque before returning to push the task to the deque and needs to be unlocked
+        // Steal_work locks the deque before returning to push the task to the deque and needs to be unlocked
         pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
         f(closure, sched); // Going to work
     }
 }
 
-// TODO CHECK MALLOC & SYSTEM CALLS
 // Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
@@ -215,7 +214,6 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
         id = 0;
     }
     if (sum >= s->qlen) {
-        // cleanup_sched(s);
         errno = EAGAIN;
         perror("The task amount is superior than what the scheduler can handle");
         return -1;
