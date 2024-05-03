@@ -5,22 +5,18 @@ import os
 import time
 import argparse
 
-nth_iterations = 4
-max_threads = 16
+nth_iterations = 2
+max_threads = 8
 output_index_time = 2
 num_processors = os.cpu_count()
 output_csv_filename = "benchmark_results.csv"
 
 
 programs_names = [
-    #("LIFO scheduler","test_lifo_quicksort"),
-    #("LIFO scheduler with semaphore and synchronization variable", "test_lifo_quicksort_sem"),
-    #("Work-stealing scheduler", "test_stealing_quicksort"),
-    #("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
-    #("Work-stealing scheduler with semaphore and synchronization variable", "test_stealing_quicksort_sem")
+    ("LIFO scheduler", "test_lifo_quicksort"),
     ("Work-stealing scheduler", "test_stealing_quicksort"),
     ("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
-    ("Work-stealing scheduler with 1 wait time var", "test_stealing_quicksort_opt"),
+    # ("Work-stealing scheduler with 1 wait time var", "test_stealing_quicksort_opt"),
     ("Work-stealing scheduler with one time var for each thread", "test_stealing_quicksort_opt_multiple")
 ]
 
@@ -63,7 +59,7 @@ def launch_bench(results, results_avg):
                 done_time = launch_prog(pair, prog_args)
                 program_bench_sum += done_time
                 results[count][i][j] = done_time
-                time.sleep(0.3)
+                time.sleep(0.2)
             average_time = round(program_bench_sum / nth_iterations, 6)
             results_avg[count][i] = average_time
 
@@ -88,12 +84,10 @@ def generate_images(results, results_avg):
         plt.ylim(min_y_axis, max_y_axis)
         plt.xlim(min_x_axis, max_x_axis)
 
-        # Replace the 0 tick label with "(serial)"
-        x_values = np.arange(min_x_axis, max_x_axis)  # Adjusted to start from 0
+        x_values = np.arange(min_x_axis, max_x_axis)
         tick_labels = ['(serial)' if x == 0 else str(x) for x in x_values]
         plt.xticks(x_values, tick_labels)
 
-        # Save the plot to a file (e.g., PNG, PDF, SVG)
         plt.savefig(f'{program_name}_plot.png')
         plt.close()
 
@@ -106,14 +100,16 @@ def generate_csv_data(results):
         name = programs_names[i][0].replace(' ', '_').replace('-', '_')
         with open(f'bench_{name}.csv', 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([programs_names[i][0], ""])
-            writer.writerow(["Threads", "Time in seconds", ""])
+            writer.writerow([programs_names[i][0] + " (average at " + str(nth_iterations) + " iteration(s))", ""])
+            writer.writerow("")
+            writer.writerow(["Threads", list(range(1, nth_iterations)), ""])
+            # writer.writerow(["Threads", "Time in seconds", ""])
             writer.writerow(["", ""])
             for j in range(1, max_threads + 1):
                 if j-1 < len(sub_array):
-                    writer.writerow([j] + sub_array)
+                    writer.writerow(["Time in seconds", sub_array[j], ""])
                 else:
-                    writer.writerow([j, ""])
+                    writer.writerow("")
 
 
 if __name__ == "__main__":
