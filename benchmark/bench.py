@@ -92,8 +92,7 @@ def generate_images(results, results_avg):
         plt.close()
 
 
-# TODO Fix csv generation
-def generate_csv_data(results):
+def generate_csv_data(results, results_avg):
     import csv
 
     for i, sub_array in enumerate(results):
@@ -102,14 +101,22 @@ def generate_csv_data(results):
             writer = csv.writer(file)
             writer.writerow([programs_names[i][0] + " (average at " + str(nth_iterations) + " iteration(s))", ""])
             writer.writerow("")
-            writer.writerow(["Threads", list(range(1, nth_iterations)), ""])
+            writer.writerow(["Threads"] + [""] * (nth_iterations + 1) + ["Average"])
             # writer.writerow(["Threads", "Time in seconds", ""])
-            writer.writerow(["", ""])
-            for j in range(1, max_threads + 1):
-                if j-1 < len(sub_array):
-                    writer.writerow(["Time in seconds", sub_array[j], ""])
+            writer.writerow("")
+            for j, arr in enumerate(sub_array):
+                if j == 0:
+                    s = ["Serial"]
                 else:
-                    writer.writerow("")
+                    s = [j]
+                writer.writerow(s + arr + [""] + [results_avg[i][j]])
+            writer.writerow("")
+            # for j in range(0, max_threads + 1):
+            #     if j-1 < len(sub_array):
+            #         print (sub_array)
+            #         writer.writerow(["Time in seconds", sub_array, ""])
+            #     else:
+            #         writer.writerow("")
 
 
 if __name__ == "__main__":
@@ -139,4 +146,4 @@ if __name__ == "__main__":
     print(res_avg)
     if args.img:
         generate_images(res, res_avg)
-    generate_csv_data(res)
+    generate_csv_data(res, res_avg)
