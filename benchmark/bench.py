@@ -15,9 +15,9 @@ output_csv_filename = "benchmark_results.csv"
 programs_names = [
     ("LIFO scheduler", "test_lifo_quicksort"),
     ("Work-stealing scheduler", "test_stealing_quicksort"),
-    ("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
+    ("Work-stealing scheduler with cond_var", "test_stealing_quicksort_cond"),
     # ("Work-stealing scheduler with 1 wait time var", "test_stealing_quicksort_opt"),
-    ("Work-stealing scheduler with one time var for each thread", "test_stealing_quicksort_opt_multiple")
+    ("Work-stealing scheduler with multiple time var", "test_stealing_quicksort_opt_multiple")
 ]
 
 
@@ -101,22 +101,18 @@ def generate_csv_data(results, results_avg):
             writer = csv.writer(file)
             writer.writerow([programs_names[i][0] + " (average at " + str(nth_iterations) + " iteration(s))", ""])
             writer.writerow("")
-            writer.writerow(["Threads"] + [""] * (nth_iterations + 1) + ["Average"])
+            writer.writerow([""] * (nth_iterations + 2) + ["Average"])
             # writer.writerow(["Threads", "Time in seconds", ""])
             writer.writerow("")
             for j, arr in enumerate(sub_array):
                 if j == 0:
                     s = ["Serial"]
+                elif j == 1:
+                    s = ["1 Thread"]
                 else:
-                    s = [j]
+                    s = [str(j) + " Threads"]
                 writer.writerow(s + arr + [""] + [results_avg[i][j]])
             writer.writerow("")
-            # for j in range(0, max_threads + 1):
-            #     if j-1 < len(sub_array):
-            #         print (sub_array)
-            #         writer.writerow(["Time in seconds", sub_array, ""])
-            #     else:
-            #         writer.writerow("")
 
 
 if __name__ == "__main__":
