@@ -13,11 +13,11 @@ output_csv_filename = "benchmark_results.csv"
 
 
 programs_names = [
-    ("LIFO scheduler", "test_lifo_quicksort"),
-    ("Work-stealing scheduler", "test_stealing_quicksort"),
-    ("Work-stealing scheduler with cond_var", "test_stealing_quicksort_cond"),
-    # ("Work-stealing scheduler with 1 wait time var", "test_stealing_quicksort_opt"),
-    ("Work-stealing scheduler with multiple time var", "test_stealing_quicksort_opt_multiple")
+    ("LIFO scheduler", "bench_lifo_quicksort"),
+    ("Work-stealing scheduler", "bench_stealing_quicksort"),
+    ("Work-stealing scheduler with cond_var", "bench_stealing_quicksort_cond"),
+    # ("Work-stealing scheduler with 1 wait time var", "bench_stealing_quicksort_opt"),
+    ("Work-stealing scheduler with multiple time var", "bench_stealing_quicksort_opt_multiple")
 ]
 
 
@@ -125,8 +125,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Script to launch the schedulars benchmarks')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-t', type=int, help="Run with t threads")
-    group.add_argument('-s', action="store_true", help="Run in serial")
-    parser.add_argument('-img', action="store_true", help="Generate image graphs")
+    group.add_argument('-s', action="store_true", help="Run in serial (wont work with graphs)")
+    parser.add_argument('-g', action="store_true", help="Generate image graphs")
     parser.add_argument('-i', type=int, help="Number of iterations for each benchmark")
     args = parser.parse_args()
 
@@ -144,8 +144,8 @@ if __name__ == "__main__":
     res = [[[None for _ in range(nth_iterations)] for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
     res_avg = [[None for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
     launch_bench(res, res_avg)
-    print(res)
-    print(res_avg)
-    if args.img:
+    print("Results : " + str(res))
+    print("Averages results : " + str(res_avg))
+    if args.g:
         generate_images(res, res_avg)
     generate_csv_data(res, res_avg)

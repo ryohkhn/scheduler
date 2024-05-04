@@ -61,7 +61,7 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
 }
 
 int increase_wait_time(struct scheduler *sched, int id) {
-    int new_wait_time = sched->wait_time[id] * 2;
+    int new_wait_time = sched->wait_time[id] + sched->initial_wait_time;
     if (new_wait_time < sched->initial_wait_time)
         new_wait_time = sched->initial_wait_time;
 
@@ -70,8 +70,7 @@ int increase_wait_time(struct scheduler *sched, int id) {
 }
 
 void reduce_wait_time(struct scheduler *sched, int id) {
-
-    int new_wait_time = sched->wait_time[id] / 2;
+    int new_wait_time = sched->wait_time[id] - sched->initial_wait_time;
     if (new_wait_time < sched->initial_wait_time)
        new_wait_time = sched->initial_wait_time;
 
