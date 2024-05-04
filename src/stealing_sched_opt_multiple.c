@@ -1,3 +1,15 @@
+/*  Work-stealing scheduler
+
+    The work is implemented as an array of deques.
+    A mutex is used to protect the integer that counts the number of threads
+    sleeping.
+    A mutex per deque is used to protect it.
+    When a thread fails to steal work, it goes to sleep for an arbitrary time.
+    Because work-stealing is an infrequent occurrence, this time is increased on
+    each failure and decreased on success.
+    This implementation uses a time variable per thread. */
+
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
