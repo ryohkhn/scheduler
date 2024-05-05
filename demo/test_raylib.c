@@ -7,12 +7,12 @@
 
 #include "../include/sched.h"
 
-#define LENGTH 10
+#define LENGTH 50
 
-#define WIDTH 800
+#define WIDTH 1200
 #define HEIGHT 800
 
-int nthreads = 8;
+int nthreads = -1000;
 
 struct param {
     Vector2 *points;
@@ -163,7 +163,7 @@ int main(void) {
         args->width = 0;
         args->height = 0;
 
-        if (sched_init(4, 50, generatePixelColors, args) == -1) {
+        if (sched_init(-1, 50, generatePixelColors, args) == -1) {
             perror("Failed to init sched");
             exit(1);
         }
@@ -177,7 +177,7 @@ int main(void) {
 
 
         if (cycles < 0) {
-            cycles = 300;
+            cycles = 150;
             for (int i = 0; i < LENGTH; i++) {
                 velocity[i].x = (rand() % ((WIDTH + 1) - 0) + 0);
                 velocity[i].y = (rand() % ((HEIGHT + 1) - 0) + 0);
