@@ -18,7 +18,7 @@ OUT_DIR = out
 
 RAYLIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
-BENCHS = bench_lifo_quicksort bench_lifo_quicksort_sem bench_lifo_quicksort_spin bench_stealing_quicksort bench_stealing_quicksort_cond bench_stealing_quicksort_opt bench_stealing_quicksort_opt_multiple
+BENCHS = bench_lifo_quicksort bench_lifo_quicksort_spin bench_lifo_quicksort_sem bench_stealing_quicksort bench_stealing_quicksort_cond bench_stealing_quicksort_opt bench_stealing_quicksort_opt_multiple
 
 DEMOS =  demo_mandelbrot_lifo demo_mandelbrot_stealing demo_voronoi_lifo demo_voronoi_stealing demo_mandelbrot_lifo_spin
 
