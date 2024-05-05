@@ -1,15 +1,15 @@
 /*  LIFO scheduler
 
     The work is implemented as a stack.
-    A mutex is used to protect the stack and the integer that counts the number
-    of threads sleeping.
-    A condition variable allows the scheduler to sleep when the stack is empty
-    and to be woken when a thread adds new work */
+    A spinlock is used to protect the stack and the integer that counts the
+    number of threads sleeping. */
 
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <stdatomic.h>
+#include <sched.h>
 
 #include "../include/stack.h"
 
@@ -19,9 +19,8 @@ struct scheduler {
     pthread_t *threads;
 
     int nth_sleeping_threads;
+    atomic_int spinlock;
 
-    pthread_mutex_t mutex;
-    pthread_cond_t cond_var;
     struct stack *tasks;
 };
 
@@ -31,31 +30,45 @@ int get_nbthreads(struct scheduler *s) {
 
 void cleanup_sched(struct scheduler *sched) {
     free(sched->threads);
-    pthread_mutex_destroy(&sched->mutex);
-    pthread_cond_destroy(&sched->cond_var);
     free(sched->tasks);
+}
+
+void lock(struct scheduler *sched) {
+    while (1) {
+        int rc, expected = 0;
+
+        rc = atomic_compare_exchange_weak(&sched->spinlock, &expected, 1);
+        if (rc)
+            break;
+        sched_yield();
+    }
+}
+
+void unlock(struct scheduler *sched) {
+    atomic_store(&sched->spinlock, 0);
 }
 
 void *slippy_time(void *args) {
     struct scheduler *sched = (struct scheduler*) args;
 
     while (1) {
-        pthread_mutex_lock(&sched->mutex); // Lock taken to check if there is work to do
+        lock(sched); // Lock taken to check if there is work to do
 
         while (is_empty(sched->tasks)) {
             sched->nth_sleeping_threads++;
             if (sched->nth_sleeping_threads >= sched->nthreads) {
-                // We inform every thread waiting that no more work is available
-                pthread_cond_broadcast(&sched->cond_var);
-                pthread_mutex_unlock(&sched->mutex);
+                unlock(sched);
                 return NULL; // No threads are working and there are no tasks left = end of threads/scheduler
                 // Other threads are working so tasks might get added, we go to sleep until we get spawned
             }
-            pthread_cond_wait(&sched->cond_var, &sched->mutex);
+            unlock(sched);
+            usleep(2000);
+            lock(sched);
             sched->nth_sleeping_threads--;
         }
         struct work w = pop(sched->tasks);
-        pthread_mutex_unlock(&sched->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
+
+        unlock(sched);
 
         taskfunc f = w.f;
         void *closure = w.closure;
@@ -66,9 +79,6 @@ void *slippy_time(void *args) {
 // Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
-
-    pthread_mutex_init(&sched.mutex, NULL);
-    pthread_cond_init(&sched.cond_var, NULL);
 
     sched.tasks = stack_init();
     if (!sched.tasks) {
@@ -88,6 +98,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     }
     sched.qlen = qlen;
     sched.nth_sleeping_threads = 0;
+    unlock(&sched);
 
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_create(&sched.threads[i], NULL,slippy_time, &sched) != 0) {
@@ -95,12 +106,10 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
             return -1;
         }
     }
-
     if (!sched_spawn(f, closure, &sched)) {
         fprintf(stderr, "Failed to create the inital task\n");
         return -1;
     }
-
     void *arg = NULL;
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_join(sched.threads[i], arg) != 0) {
@@ -114,7 +123,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
 }
 
 int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
-    pthread_mutex_lock(&s->mutex);
+    lock(s);
     if (size(s->tasks) >= s->qlen) {
         cleanup_sched(s);
         errno = EAGAIN;
@@ -124,8 +133,7 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     struct work w = {closure, f};
     push(w, s->tasks);
 
-    pthread_cond_signal(&s->cond_var);
-    pthread_mutex_unlock(&s->mutex);
+    unlock(s);
 
     return 1;
 }

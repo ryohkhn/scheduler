@@ -1,3 +1,14 @@
+/*  Work-stealing scheduler
+
+    The work is implemented as an array of deques.
+    A mutex is used to protect the integer that counts the number of threads
+    sleeping.
+    A mutex per deque is used to protect it.
+    When a thread fails to steal work, it goes to sleep for an arbitrary time.
+    Because work-stealing is an infrequent occurrence, this time is increased on
+    each failure and decreased on success.
+    This implementation uses a common time variable protected by a mutex. */
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -63,7 +74,7 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
 
 int increase_wait_time(struct scheduler *sched) {
     pthread_mutex_lock(&sched->wait_time_mutex);
-    int new_wait_time = sched->wait_time * 2;
+    int new_wait_time = sched->wait_time + sched->initial_wait_time;
     if (new_wait_time < sched->initial_wait_time)
         new_wait_time = sched->initial_wait_time;
 
@@ -74,7 +85,7 @@ int increase_wait_time(struct scheduler *sched) {
 
 void reduce_wait_time(struct scheduler *sched) {
     pthread_mutex_lock(&sched->wait_time_mutex);
-    int new_wait_time = sched->wait_time / 2;
+    int new_wait_time = sched->wait_time - sched->initial_wait_time;
     if (new_wait_time < sched->initial_wait_time)
        new_wait_time = sched->initial_wait_time;
 
@@ -144,16 +155,14 @@ void *gaming_time(void* args) {
             }
         }
         struct work w = pop_bottom(dq);
-        taskfunc f = w.f;
-        void *closure = w.closure;
-
         pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
+        taskfunc f = w.f;
+        void *closure = w.closure;
         f(closure, sched); // Going to work
     }
 }
 
-// TODO CHECK MALLOC & SYSTEM CALLS
 // Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;

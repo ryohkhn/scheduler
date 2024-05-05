@@ -1,3 +1,12 @@
+/*  Work-stealing scheduler
+
+    The work is implemented as an array of deques.
+    A mutex is used to protect the integer that counts the number of threads
+    sleeping.
+    A mutex per deque is used to protect it.
+    A condition variable allows the scheduler to sleep when the deques are empty
+    and to be woken when a thread adds new work. */
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -120,17 +129,14 @@ void *gaming_time(void* args) {
             }
         }
         struct work w = pop_bottom(dq);
-        taskfunc f = w.f;
-        void *closure = w.closure;
-
-        // steal_work locks the deque before returning to push the task to the deque and needs to be unlocked
         pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
+        taskfunc f = w.f;
+        void *closure = w.closure;
         f(closure, sched); // Going to work
     }
 }
 
-// TODO CHECK MALLOC & SYSTEM CALLS
 // Return -1 if failed to initialize or 1 if all the work is done
 int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     struct scheduler sched;
@@ -215,7 +221,6 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
         id = 0;
     }
     if (sum >= s->qlen) {
-        // cleanup_sched(s);
         errno = EAGAIN;
         perror("The task amount is superior than what the scheduler can handle");
         return -1;

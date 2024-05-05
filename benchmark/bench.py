@@ -5,23 +5,20 @@ import os
 import time
 import argparse
 
-nth_iterations = 4
-max_threads = 16
+nth_iterations = 2
+max_threads = 8
 output_index_time = 2
 num_processors = os.cpu_count()
 output_csv_filename = "benchmark_results.csv"
 
 
 programs_names = [
-    #("LIFO scheduler","test_lifo_quicksort"),
-    #("LIFO scheduler with semaphore and synchronization variable", "test_lifo_quicksort_sem"),
-    #("Work-stealing scheduler", "test_stealing_quicksort"),
-    #("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
-    #("Work-stealing scheduler with semaphore and synchronization variable", "test_stealing_quicksort_sem")
-    ("Work-stealing scheduler", "test_stealing_quicksort"),
-    ("Work-stealing scheduler with synchronization variable", "test_stealing_quicksort_cond"),
-    ("Work-stealing scheduler with 1 wait time var", "test_stealing_quicksort_opt"),
-    ("Work-stealing scheduler with one time var for each thread", "test_stealing_quicksort_opt_multiple")
+    ("LIFO scheduler", "bench_lifo_quicksort"),
+    ("LIFO scheduler with spinlock", "bench_lifo_quicksort_spin"),
+    ("Work-stealing scheduler", "bench_stealing_quicksort"),
+    ("Work-stealing scheduler with cond_var", "bench_stealing_quicksort_cond"),
+    ("Work-stealing scheduler with 1 wait time var", "bench_stealing_quicksort_opt"),
+    ("Work-stealing scheduler with multiple time var", "bench_stealing_quicksort_opt_multiple")
 ]
 
 
@@ -63,7 +60,7 @@ def launch_bench(results, results_avg):
                 done_time = launch_prog(pair, prog_args)
                 program_bench_sum += done_time
                 results[count][i][j] = done_time
-                time.sleep(0.3)
+                time.sleep(0.2)
             average_time = round(program_bench_sum / nth_iterations, 6)
             results_avg[count][i] = average_time
 
@@ -88,40 +85,49 @@ def generate_images(results, results_avg):
         plt.ylim(min_y_axis, max_y_axis)
         plt.xlim(min_x_axis, max_x_axis)
 
-        # Replace the 0 tick label with "(serial)"
-        x_values = np.arange(min_x_axis, max_x_axis)  # Adjusted to start from 0
+        x_values = np.arange(min_x_axis, max_x_axis)
         tick_labels = ['(serial)' if x == 0 else str(x) for x in x_values]
         plt.xticks(x_values, tick_labels)
 
-        # Save the plot to a file (e.g., PNG, PDF, SVG)
         plt.savefig(f'{program_name}_plot.png')
         plt.close()
 
+    for i, avg in enumerate(results_avg):
+        plt.plot(avg, label=programs_names[i][0], linewidth=2)
 
-# TODO Fix csv generation
-def generate_csv_data(results):
+    plt.legend()
+    plt.savefig('combined_schedulers.png')
+    plt.close()
+
+
+def generate_csv_data(results, results_avg):
     import csv
 
     for i, sub_array in enumerate(results):
         name = programs_names[i][0].replace(' ', '_').replace('-', '_')
         with open(f'bench_{name}.csv', 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow([programs_names[i][0], ""])
-            writer.writerow(["Threads", "Time in seconds", ""])
-            writer.writerow(["", ""])
-            for j in range(1, max_threads + 1):
-                if j-1 < len(sub_array):
-                    writer.writerow([j] + sub_array)
+            writer.writerow([programs_names[i][0] + " (average at " + str(nth_iterations) + " iteration(s))", ""])
+            writer.writerow("")
+            writer.writerow([""] * (nth_iterations + 2) + ["Average"])
+            writer.writerow("")
+            for j, arr in enumerate(sub_array):
+                if j == 0:
+                    s = ["Serial"]
+                elif j == 1:
+                    s = ["1 Thread"]
                 else:
-                    writer.writerow([j, ""])
+                    s = [str(j) + " Threads"]
+                writer.writerow(s + arr + [""] + [results_avg[i][j]])
+            writer.writerow("")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Script to launch the schedulars benchmarks')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-t', type=int, help="Run with t threads")
-    group.add_argument('-s', action="store_true", help="Run in serial")
-    parser.add_argument('-img', action="store_true", help="Generate image graphs")
+    group.add_argument('-s', action="store_true", help="Run in serial (wont work with graphs)")
+    parser.add_argument('-g', action="store_true", help="Generate image graphs")
     parser.add_argument('-i', type=int, help="Number of iterations for each benchmark")
     args = parser.parse_args()
 
@@ -139,8 +145,8 @@ if __name__ == "__main__":
     res = [[[None for _ in range(nth_iterations)] for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
     res_avg = [[None for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
     launch_bench(res, res_avg)
-    print(res)
-    print(res_avg)
-    if args.img:
+    print("Results : " + str(res))
+    print("Averages results : " + str(res_avg))
+    if args.g:
         generate_images(res, res_avg)
-    generate_csv_data(res)
+    generate_csv_data(res, res_avg)
