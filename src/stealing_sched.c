@@ -126,11 +126,10 @@ void *gaming_time(void* args) {
             }
         }
         struct work w = pop_bottom(dq);
-        taskfunc f = w.f;
-        void *closure = w.closure;
-
         pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
+        taskfunc f = w.f;
+        void *closure = w.closure;
         f(closure, sched); // Going to work
     }
 }

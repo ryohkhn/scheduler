@@ -66,13 +66,12 @@ void *slippy_time(void *args) {
             lock(sched);
             sched->nth_sleeping_threads--;
         }
-
         struct work w = pop(sched->tasks);
-        taskfunc f = w.f;
-        void *closure = w.closure;
 
         unlock(sched);
 
+        taskfunc f = w.f;
+        void *closure = w.closure;
         f(closure, sched); // Going to work
     }
 }
@@ -107,12 +106,10 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
             return -1;
         }
     }
-
     if (!sched_spawn(f, closure, &sched)) {
         fprintf(stderr, "Failed to create the inital task\n");
         return -1;
     }
-
     void *arg = NULL;
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_join(sched.threads[i], arg) != 0) {

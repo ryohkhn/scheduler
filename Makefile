@@ -18,7 +18,7 @@ OUT_DIR = out
 
 RAYLIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
-BENCHS = bench_lifo_quicksort bench_lifo_quicksort_spin bench_stealing_quicksort bench_stealing_quicksort_cond bench_stealing_quicksort_opt bench_stealing_quicksort_opt_multiple bench_stealing_quicksort_sem
+BENCHS = bench_lifo_quicksort bench_lifo_quicksort_sem bench_lifo_quicksort_spin bench_stealing_quicksort bench_stealing_quicksort_cond bench_stealing_quicksort_opt bench_stealing_quicksort_opt_multiple
 
 DEMOS =  demo_mandelbrot_lifo demo_mandelbrot_stealing demo_voronoi_lifo demo_voronoi_stealing demo_mandelbrot_lifo_spin
 
@@ -36,6 +36,9 @@ $(BUILD_DIR)/%.o: $(SRCS_DIR)/%.c
 $(BUILD_DIR)/lifo_sched.o: $(SRCS_DIR)/lifo_sched.c $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD_DIR)/lifo_sched_sem.o: $(SRCS_DIR)/lifo_sched_sem.c $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) -c $< -o $@
+
 $(BUILD_DIR)/lifo_sched_spin.o: $(SRCS_DIR)/lifo_sched_spin.c $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -51,12 +54,12 @@ $(BUILD_DIR)/stealing_sched_opt.o: $(SRCS_DIR)/stealing_sched_opt.c $(BUILD_DIR)
 $(BUILD_DIR)/stealing_sched_opt_multiple.o: $(SRCS_DIR)/stealing_sched_opt_multiple.c $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/stealing_sched_sem.o: $(SRCS_DIR)/stealing_sched_sem.c $(BUILD_DIR)/deque.o
-	$(CC) $(CFLAGS) -c $< -o $@
-
 # Benchmarks
 
 bench_lifo_quicksort: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
+	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
+
+bench_lifo_quicksort_sem: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched_sem.o $(BUILD_DIR)/stack.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 bench_lifo_quicksort_spin: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/lifo_sched_spin.o $(BUILD_DIR)/stack.o
@@ -72,9 +75,6 @@ bench_stealing_quicksort_opt: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/steali
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 bench_stealing_quicksort_opt_multiple: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealing_sched_opt_multiple.o $(BUILD_DIR)/deque.o
-	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
-
-bench_stealing_quicksort_sem: $(TESTS_DIR)/$(BENCHMARK_FILE) $(BUILD_DIR)/stealing_sched_sem.o $(BUILD_DIR)/deque.o
 	$(CC) $(CFLAGS) $^ -o $(OUT_DIR)/$@
 
 # Demos and dependencies

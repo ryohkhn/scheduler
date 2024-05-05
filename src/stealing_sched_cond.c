@@ -129,12 +129,10 @@ void *gaming_time(void* args) {
             }
         }
         struct work w = pop_bottom(dq);
-        taskfunc f = w.f;
-        void *closure = w.closure;
-
-        // Steal_work locks the deque before returning to push the task to the deque and needs to be unlocked
         pthread_mutex_unlock(&sched->deques_mutexes[id]);
 
+        taskfunc f = w.f;
+        void *closure = w.closure;
         f(closure, sched); // Going to work
     }
 }

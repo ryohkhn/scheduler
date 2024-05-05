@@ -13,12 +13,12 @@ output_csv_filename = "benchmark_results.csv"
 
 
 programs_names = [
-    # ("LIFO scheduler", "bench_lifo_quicksort"),
+    ("LIFO scheduler", "bench_lifo_quicksort"),
     ("LIFO scheduler with spinlock", "bench_lifo_quicksort_spin"),
-    # ("Work-stealing scheduler", "bench_stealing_quicksort"),
-    # ("Work-stealing scheduler with cond_var", "bench_stealing_quicksort_cond"),
-    # ("Work-stealing scheduler with 1 wait time var", "bench_stealing_quicksort_opt"),
-    # ("Work-stealing scheduler with multiple time var", "bench_stealing_quicksort_opt_multiple")
+    ("Work-stealing scheduler", "bench_stealing_quicksort"),
+    ("Work-stealing scheduler with cond_var", "bench_stealing_quicksort_cond"),
+    ("Work-stealing scheduler with 1 wait time var", "bench_stealing_quicksort_opt"),
+    ("Work-stealing scheduler with multiple time var", "bench_stealing_quicksort_opt_multiple")
 ]
 
 
