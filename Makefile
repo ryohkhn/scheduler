@@ -20,7 +20,7 @@ RAYLIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 BENCHS = bench_lifo_quicksort bench_lifo_quicksort_sem bench_lifo_quicksort_spin bench_stealing_quicksort bench_stealing_quicksort_cond bench_stealing_quicksort_opt bench_stealing_quicksort_opt_multiple
 
-DEMOS =  demo_mandelbrot_lifo demo_mandelbrot_stealing demo_voronoi_lifo demo_voronoi_stealing demo_mandelbrot_lifo_spin
+DEMOS =  demo_mandelbrot_lifo demo_mandelbrot_stealing demo_voronoi_lifo demo_voronoi_stealing demo_mandelbrot_lifo_spin demo_static_voronoi_stealing demo_voronoi_viewer
 
 BENCHMARK_FILE = quicksort.c
 
@@ -85,6 +85,9 @@ $(BUILD_DIR)/mandelbrot.o: $(DEMOS_DIR)/mandelbrot.c
 $(BUILD_DIR)/voronoi.o: $(DEMOS_DIR)/voronoi.c
 	$(CC) -Wall $(FAST) $(RAYLIBS) -c -o $(BUILD_DIR)/voronoi.o $(DEMOS_DIR)/voronoi.c
 
+$(BUILD_DIR)/static_voronoi.o: $(DEMOS_DIR)/static_voronoi.c
+	$(CC) -Wall $(FAST) -c -o $(BUILD_DIR)/static_voronoi.o $(DEMOS_DIR)/static_voronoi.c
+
 demo_mandelbrot_lifo: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o `pkg-config --libs gtk4` -o $(OUT_DIR)/demo_mandelbrot_lifo
 
@@ -105,6 +108,12 @@ demo_voronoi_lifo: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)
 
 demo_voronoi_stealing: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $^ $(RAYLIBS) -o $(OUT_DIR)/$@
+
+demo_static_voronoi_stealing: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+	$(CC) $^ -lm -o $(OUT_DIR)/$@
+
+demo_voronoi_viewer: VoronoiViewer.java
+	javac VoronoiViewer.java
 
 bench: $(BENCHS)
 
