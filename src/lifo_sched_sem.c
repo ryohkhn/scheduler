@@ -32,29 +32,24 @@ void cleanup_sched(struct scheduler *sched) {
 
 void *slippy_time(void *args) {
     struct scheduler *s = (struct scheduler*) args;
+    int val = -1;
 
     while (1) {
-        pthread_mutex_lock(&s->mutex); // Lock taken to check if there is work to do
+        pthread_mutex_lock(&s->mutex);
 
         while (is_empty(s->tasks)) {
-            if (sem_trywait(&s->sem) == 0) {
-                if (is_empty(s->tasks)) {
-                    // We inform every thread waiting that no more work is available
-                    pthread_cond_broadcast(&s->cond_var);
-                    pthread_mutex_unlock(&s->mutex);
-                    sem_post(&s->sem);
-                    return NULL; // No threads are working and there are no tasks left = end of threads/scheduler
-                }
-                else
-                    sem_post(&s->sem);
+            pthread_mutex_unlock(&s->mutex);
+
+            sem_getvalue(&s->sem, &val);
+            if (val == 0) {
+                sem_post(&s->sem);
+                return NULL;
             }
-            else {
-                // Other threads are working so tasks might get added, we go to sleep until we get spawned
-                pthread_cond_wait(&s->cond_var, &s->mutex);
-            }
+            sem_wait(&s->sem);
+            pthread_mutex_lock(&s->mutex);
         }
         struct work w = pop(s->tasks);
-        pthread_mutex_unlock(&s->mutex); // Lock is given back with nb_threads_working incremented & work taken from stack
+        pthread_mutex_unlock(&s->mutex);
 
         taskfunc f = w.f;
         void *closure = w.closure;
@@ -123,8 +118,8 @@ int sched_spawn(taskfunc f, void *closure, struct scheduler *s) {
     struct work w = {closure, f};
     push(w, s->tasks);
 
-    pthread_cond_signal(&s->cond_var);
     pthread_mutex_unlock(&s->mutex);
+    sem_post(&s->sem);
 
     return 1;
 }
