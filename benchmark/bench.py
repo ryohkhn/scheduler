@@ -2,7 +2,6 @@
 
 import subprocess
 import os
-import time
 import argparse
 
 DEBUG = 0
@@ -63,12 +62,12 @@ def launch_bench(results, results_avg, stats_avg):
                     prog_args = "-t " + str(i)
                 prog_out = launch_prog(pair, prog_args)
                 # Handle parsing for timed results
-                if (prog_out[0] == "Done"):
+                if prog_out[0] == "Done":
                     res = float(prog_out[output_index_time])
                     program_bench_sum += res
                     results[count][i][j] = res
                 # Handle parsing when stats are available
-                elif (prog_out[0] == "Steal"):
+                elif prog_out[0] == "Steal":
                     stats_steal_succeeded += int(prog_out[output_stats_steal_succeeded_id])
                     stats_steal_failed += int(prog_out[output_stats_steal_failed_id])
                     stats_tasks_done += int(prog_out[output_stats_tasks_done_id])
@@ -128,6 +127,7 @@ def format_stats_string(stats):
             f"Steal attempts failed:    {succeed}\n"
             f"Tasks completed:          {total}\0")
 
+
 def generate_csv_data(results, results_avg, stats):
     import csv
 
@@ -147,7 +147,7 @@ def generate_csv_data(results, results_avg, stats):
                 else:
                     s = [str(j) + " Threads"]
                 stats_string = ""
-                if (stats[i][j] != (0., 0., 0.)):
+                if stats[i][j] != (0., 0., 0.):
                     stats_string = format_stats_string(stats[i][j])
                 writer.writerow(s + arr + [""] + [results_avg[i][j]] + ["", stats_string])
             writer.writerow("")
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     parser.add_argument('-D', action="store_true", help="Debug mode")
     args = parser.parse_args()
 
-    if args.t != None:
+    if args.t is not None:
         if args.t < max_threads and args.t >= 0:
             max_threads = args.t
     elif args.s:
