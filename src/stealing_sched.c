@@ -27,7 +27,7 @@ struct scheduler {
     struct deque **deques;
     pthread_mutex_t *deques_mutexes;
 
-    struct stats* stats;
+    struct stats *stats;
 };
 
 struct args_pack {
