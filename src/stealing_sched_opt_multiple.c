@@ -210,7 +210,9 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     sched.qlen = qlen;
     sched.num_sleeping_threads = 0;
     sched.initial_wait_time = 1000;
-    memset(sched.wait_time, sched.initial_wait_time, sched.nthreads);
+    for (int i = 0; i < sched.nthreads; ++i) {
+        sched.wait_time[i] = sched.initial_wait_time;
+    }
 
     for (int i = 0; i < sched.nthreads; ++i) {
         pthread_mutex_init(&sched.deques_mutexes[i], NULL);
