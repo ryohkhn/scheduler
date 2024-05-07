@@ -83,12 +83,8 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
 }
 
 int increase_wait_time(struct scheduler *sched, int id) {
-    int new_wait_time = sched->wait_time[id] + sched->initial_wait_time;
-    if (new_wait_time < sched->initial_wait_time)
-        new_wait_time = sched->initial_wait_time;
-
-    sched->wait_time[id] = new_wait_time;
-    return new_wait_time;
+    sched->wait_time[id] += sched->initial_wait_time;
+    return sched->wait_time[id];
 }
 
 void reduce_wait_time(struct scheduler *sched, int id) {
@@ -223,7 +219,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
 
     for (int id = 0; id < sched.nthreads; ++id) {
         struct args_pack argsPack = {&sched, sched.deques[id], id};
-        if(pthread_create(&sched.threads[id], NULL,gaming_time, &argsPack) != 0) {
+        if(pthread_create(&sched.threads[id], NULL, gaming_time, &argsPack) != 0) {
             fprintf(stderr, "Failed to create thread\n");
             return -1;
         }

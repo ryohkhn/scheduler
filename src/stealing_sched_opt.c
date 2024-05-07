@@ -85,11 +85,9 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
 int increase_wait_time(struct scheduler *sched) {
     pthread_mutex_lock(&sched->wait_time_mutex);
     int new_wait_time = sched->wait_time + sched->initial_wait_time;
-    if (new_wait_time < sched->initial_wait_time)
-        new_wait_time = sched->initial_wait_time;
-
     sched->wait_time = new_wait_time;
     pthread_mutex_unlock(&sched->wait_time_mutex);
+
     return new_wait_time;
 }
 
