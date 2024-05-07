@@ -100,13 +100,13 @@ demo_mandelbrot_stealing: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.
 demo_voronoi_lifo: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $^ $(RAYLIBS) -o $(OUT_DIR)/$@
 
-demo_voronoi_stealing: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+demo_voronoi_stealing: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/stealing_sched_cond.o $(BUILD_DIR)/deque.o
 	$(CC) $^ $(RAYLIBS) -o $(OUT_DIR)/$@
 
-demo_static_voronoi_stealing: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+demo_static_voronoi_stealing: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/stealing_sched_cond.o $(BUILD_DIR)/deque.o
 	$(CC) $^ -lm -o $(OUT_DIR)/$@
 
-demo_static_voronoi_lifo: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
+demo_static_voronoi_lifo: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/lifo_sched_spin.o $(BUILD_DIR)/stack.o
 	$(CC) $^ -lm -o $(OUT_DIR)/$@
 
 demo_voronoi_viewer: $(DEMOS_DIR)/VoronoiViewer.java
