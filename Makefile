@@ -112,11 +112,21 @@ demo_static_voronoi_lifo: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/lifo_sched.
 demo_voronoi_viewer: $(DEMOS_DIR)/VoronoiViewer.java
 	javac $(DEMOS_DIR)/VoronoiViewer.java
 
-bench: $(BENCHS)
+testdir:
+ifneq ("$(wildcard build)", "")
+else
+	mkdir -p build
+endif
 
-demo: $(DEMOS)
+ifneq ("$(wildcard out)", "")
+else
+	mkdir -p out
+endif
 
-#rm -f $(addprefix $(TESTS_DIR)/, $(TESTS))
+bench: testdir $(BENCHS)
+
+demo: testdir $(DEMOS)
+
 clean:
 ifneq ("$(wildcard $(BUILD_DIR)/*.o)", "")
 	rm $(BUILD_DIR)/*.o
@@ -124,5 +134,8 @@ endif
 ifneq ("$(wildcard $(OUT_DIR)/*)", "")
 	rm $(OUT_DIR)/*
 endif
+ifneq ("$(wildcard $(DEMOS_DIR)/*.class)", "")
+	rm $(DEMOS_DIR)/*.class
+endif
 
-.PHONY:	all test clean bench demo
+.PHONY:	all test clean bench demo testdir
