@@ -109,8 +109,8 @@ demo_static_voronoi_stealing: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/stealin
 demo_static_voronoi_lifo: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $^ -lm -o $(OUT_DIR)/$@
 
-demo_voronoi_viewer: VoronoiViewer.java
-	javac VoronoiViewer.java
+demo_voronoi_viewer: $(DEMOS_DIR)/VoronoiViewer.java
+	javac $(DEMOS_DIR)/VoronoiViewer.java
 
 bench: $(BENCHS)
 

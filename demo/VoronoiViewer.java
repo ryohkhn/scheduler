@@ -1,3 +1,5 @@
+package demo;
+
 import java.awt.*;
 import javax.swing.*;
 import java.util.List;
@@ -28,7 +30,7 @@ public class VoronoiViewer {
 	}
 
 	private void readColors() {
-		String fileName = "out/pixelInfo.txt";
+		String fileName = "./out/pixelInfo.txt";
 
 		File file = new File(fileName);
 		if (file.exists()) {
@@ -69,7 +71,7 @@ public class VoronoiViewer {
 	}
 	private void saveImage() {
 		try {
-			File ouput = new File("out/Voronoi.png");
+			File ouput = new File("./out/Voronoi.png");
 			ImageIO.write(this.img, "png", ouput);
 			System.out.println("Image saved as: out/Voronoi.png");
 		} catch (IOException io) {
