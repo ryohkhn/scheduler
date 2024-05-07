@@ -59,7 +59,6 @@ void *slippy_time(void *args) {
             if (sched->nth_sleeping_threads >= sched->nthreads) {
                 unlock(sched);
                 return NULL; // No threads are working and there are no tasks left = end of threads/scheduler
-                // Other threads are working so tasks might get added, we go to sleep until we get spawned
             }
             unlock(sched);
             usleep(2000);

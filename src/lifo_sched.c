@@ -49,7 +49,6 @@ void *slippy_time(void *args) {
                 pthread_cond_broadcast(&sched->cond_var);
                 pthread_mutex_unlock(&sched->mutex);
                 return NULL; // No threads are working and there are no tasks left = end of threads/scheduler
-                // Other threads are working so tasks might get added, we go to sleep until we get spawned
             }
             pthread_cond_wait(&sched->cond_var, &sched->mutex);
             sched->nth_sleeping_threads--;
