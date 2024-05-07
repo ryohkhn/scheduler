@@ -14,11 +14,7 @@
 
 #include "../include/deque.h"
 
-struct stats {
-    int tasks_completed;
-    int steal_attempts_failed;
-    int steal_attempts_succeeded;
-};
+struct stats;
 
 struct scheduler {
     int nthreads;
@@ -38,6 +34,12 @@ struct args_pack {
     struct scheduler *sched;
     struct deque *dq;
     int thread_id;
+};
+
+struct stats {
+    int tasks_completed;
+    int steal_attempts_failed;
+    int steal_attempts_succeeded;
 };
 
 
@@ -212,9 +214,11 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         total_stats.steal_attempts_failed += sched.stats[i].steal_attempts_failed;
         total_stats.tasks_completed += sched.stats[i].tasks_completed;
     }
-    printf("Steal attempts succeeded: %d\n", total_stats.steal_attempts_succeeded);
-    printf("Steal attempts failed:    %d\n", total_stats.steal_attempts_failed);
-    printf("Tasks completed:          %d\n", total_stats.tasks_completed);
+
+    printf("Steal attempts succeeded: %d\nSteal attempts failed:    %d\nTasks completed:          %d\n",
+           total_stats.steal_attempts_succeeded,
+           total_stats.steal_attempts_failed,
+           total_stats.tasks_completed);
 
     cleanup_sched(&sched);
     return 1;
