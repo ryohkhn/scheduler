@@ -37,22 +37,6 @@ Color getCustomColor(int i) {
     double value = (50 + i) % 100;
     return ColorFromHSV(hue, saturation, value);
 }
-//void generatePixelColorSubArea(Vector2 points[], int length, int x, int y, int width, int height) {
-//    for (int i = x; i < width; i++) {
-//        for (int j = y; j < height; j++) {
-//            double distMin = 10000;
-//            int index = 0;
-//            for (int k = 0; k < length; k++) {
-//                double dist = sqrt(pow(points[k].x - i, 2) + pow(points[k].y - j, 2));
-//                if (dist < distMin) {
-//                    distMin = dist;
-//                    index = k;
-//                }
-//            }
-//            DrawPixel(i, j, getCustomColor(index));
-//        }
-//    }
-//}
 
 void generatePixelColorsSubArea(void *closure, struct scheduler *) {
     struct param *args = (struct param *) closure;
@@ -76,7 +60,6 @@ void generatePixelColorsSubArea(void *closure, struct scheduler *) {
                 }
             }
             pixelColorMap[i * HEIGHT + j] = getCustomColor(index);
-//            DrawPixel(i, j, getCustomColor(index));
         }
     }
 }
@@ -99,28 +82,12 @@ void generatePixelColors(void *closure, struct scheduler *s) {
         sched_spawn(generatePixelColorsSubArea, sub_args, s);
     }
 }
-//void generatePixelColors(Vector2 points[], int length) {
-//
-//    if (nthreads > 0) {
-//        int increment = HEIGHT / nthreads;
-//        for (int i = 0; i < nthreads; i++) {
-//            generatePixelColor(points, length, 0, increment * i, WIDTH, increment * (i + 1));
-//        }
-//    }
-//}
 
 int main(void) {
     InitWindow(WIDTH, HEIGHT, "Salut");
 
     SetTargetFPS(60);
     srand(time(NULL));
-
-//    Vector2 points[LENGTH] = {0};
-//    int sum = 0;
-//    while (sum < LENGTH) {
-//        points[sum] = getRandomPoint(0, 0, WIDTH, HEIGHT);
-//        sum++;
-//    }
 
     Color *pixelColorMap = malloc((WIDTH * HEIGHT) * sizeof(Color));
     if (pixelColorMap == NULL) {
@@ -173,7 +140,6 @@ int main(void) {
                 DrawPixel(x, y, pixelColorMap[x * HEIGHT + y]);
             }
         }
-//        generatePixelColors(points, LENGTH);
 
 
         if (cycles < 0) {

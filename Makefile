@@ -20,7 +20,7 @@ RAYLIBS = -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 BENCHS = bench_lifo_quicksort bench_lifo_quicksort_spin bench_lifo_quicksort_sem bench_stealing_quicksort bench_stealing_quicksort_cond bench_stealing_quicksort_opt bench_stealing_quicksort_opt_multiple
 
-DEMOS =  demo_mandelbrot_lifo demo_mandelbrot_stealing demo_voronoi_lifo demo_voronoi_stealing demo_mandelbrot_lifo_spin demo_static_voronoi_stealing demo_voronoi_viewer
+DEMOS =  demo_mandelbrot_lifo demo_mandelbrot_stealing demo_voronoi_lifo demo_voronoi_stealing demo_mandelbrot_lifo_spin demo_static_voronoi_stealing demo_static_voronoi_lifo demo_voronoi_viewer
 
 BENCHMARK_FILE = quicksort.c
 
@@ -97,12 +97,6 @@ demo_mandelbrot_lifo_spin: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/lifo_sched_spi
 demo_mandelbrot_stealing: $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
 	$(CC) $(BUILD_DIR)/mandelbrot.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o `pkg-config --libs gtk4` -o $(OUT_DIR)/demo_mandelbrot_stealing
 
-#demo_voronoi_lifo: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
-#	$(CC) $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o $(RAYLIBS) -o $(OUT_DIR)/demo_voronoi_lifo
-
-#demo_voronoi_stealing: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
-#	$(CC) $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o $(RAYLIBS) -o $(OUT_DIR)/demo_voronoi_stealing
-
 demo_voronoi_lifo: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $^ $(RAYLIBS) -o $(OUT_DIR)/$@
 
@@ -110,6 +104,9 @@ demo_voronoi_stealing: $(BUILD_DIR)/voronoi.o $(BUILD_DIR)/stealing_sched.o $(BU
 	$(CC) $^ $(RAYLIBS) -o $(OUT_DIR)/$@
 
 demo_static_voronoi_stealing: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/stealing_sched.o $(BUILD_DIR)/deque.o
+	$(CC) $^ -lm -o $(OUT_DIR)/$@
+
+demo_static_voronoi_lifo: $(BUILD_DIR)/static_voronoi.o $(BUILD_DIR)/lifo_sched.o $(BUILD_DIR)/stack.o
 	$(CC) $^ -lm -o $(OUT_DIR)/$@
 
 demo_voronoi_viewer: VoronoiViewer.java
