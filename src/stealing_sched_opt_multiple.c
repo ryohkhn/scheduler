@@ -19,6 +19,8 @@
 
 #include "../include/deque.h"
 
+struct stats;
+
 struct scheduler {
     int nthreads;
     int qlen; // Maximum number of tasks
@@ -32,12 +34,20 @@ struct scheduler {
 
     int initial_wait_time;
     int *wait_time;
+
+    struct stats* stats;
 };
 
 struct args_pack {
     struct scheduler *sched;
     struct deque *dq;
     int thread_id;
+};
+
+struct stats {
+    int tasks_completed;
+    int steal_attempts_failed;
+    int steal_attempts_succeeded;
 };
 
 
@@ -73,12 +83,8 @@ int next_thread_id(int currend_id, int n_threads, int og_id) {
 }
 
 int increase_wait_time(struct scheduler *sched, int id) {
-    int new_wait_time = sched->wait_time[id] + sched->initial_wait_time;
-    if (new_wait_time < sched->initial_wait_time)
-        new_wait_time = sched->initial_wait_time;
-
-    sched->wait_time[id] = new_wait_time;
-    return new_wait_time;
+    sched->wait_time[id] += sched->initial_wait_time;
+    return sched->wait_time[id];
 }
 
 void reduce_wait_time(struct scheduler *sched, int id) {
@@ -121,16 +127,21 @@ void *gaming_time(void* args) {
     struct scheduler *sched = ((struct args_pack *)args)->sched;
     struct deque *dq = ((struct args_pack *)args)->dq;
     int id = ((struct args_pack *)args)->thread_id;
+    sched->stats[id].steal_attempts_failed = 0;
+    sched->stats[id].steal_attempts_succeeded = 0;
+    sched->stats[id].tasks_completed = 0;
 
     while (1) {
         pthread_mutex_lock(&sched->deques_mutexes[id]);
 
         while (is_empty(dq)) {
             if (steal_work(sched, dq, id)) {
+                sched->stats[id].steal_attempts_succeeded++;
                 reduce_wait_time(sched, id);
                 break;
             }
             else {
+                sched->stats[id].steal_attempts_failed++;
                 pthread_mutex_lock(&sched->sleep_mutex);
                 sched->num_sleeping_threads++;
                 if (sched->num_sleeping_threads >= sched->nthreads) {
@@ -156,6 +167,7 @@ void *gaming_time(void* args) {
         taskfunc f = w.f;
         void *closure = w.closure;
         f(closure, sched); // Going to work
+        sched->stats[id].tasks_completed++;
     }
 }
 
@@ -186,10 +198,21 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
         return -1;
     }
     sched.wait_time = malloc(sizeof(int) * sched.nthreads);
+    if (!sched.wait_time) {
+        fprintf(stderr, "Failed to malloc stats array\n");
+        return -1;
+    }
+    sched.stats = malloc(sizeof(struct stats) * sched.nthreads);
+    if (!sched.stats) {
+        fprintf(stderr, "Failed to malloc stats array\n");
+        return -1;
+    }
     sched.qlen = qlen;
     sched.num_sleeping_threads = 0;
     sched.initial_wait_time = 1000;
-    memset(sched.wait_time, sched.initial_wait_time, sched.nthreads);
+    for (int i = 0; i < sched.nthreads; ++i) {
+        sched.wait_time[i] = sched.initial_wait_time;
+    }
 
     for (int i = 0; i < sched.nthreads; ++i) {
         pthread_mutex_init(&sched.deques_mutexes[i], NULL);
@@ -198,7 +221,7 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
 
     for (int id = 0; id < sched.nthreads; ++id) {
         struct args_pack argsPack = {&sched, sched.deques[id], id};
-        if(pthread_create(&sched.threads[id], NULL,gaming_time, &argsPack) != 0) {
+        if(pthread_create(&sched.threads[id], NULL, gaming_time, &argsPack) != 0) {
             fprintf(stderr, "Failed to create thread\n");
             return -1;
         }
@@ -210,12 +233,20 @@ int sched_init(int nthreads, int qlen, taskfunc f, void *closure) {
     }
 
     void *arg = NULL;
+    struct stats total_stats = {0};
     for (int i = 0; i < sched.nthreads; i++) {
         if (pthread_join(sched.threads[i], arg) != 0) {
             fprintf(stderr, "Failed to join thread\n");
             return -1;
         }
+        total_stats.steal_attempts_succeeded += sched.stats[i].steal_attempts_succeeded;
+        total_stats.steal_attempts_failed += sched.stats[i].steal_attempts_failed;
+        total_stats.tasks_completed += sched.stats[i].tasks_completed;
     }
+    printf("Steal attempts succeeded: %d\nSteal attempts failed:    %d\nTasks completed:          %d\n",
+           total_stats.steal_attempts_succeeded,
+           total_stats.steal_attempts_failed,
+           total_stats.tasks_completed);
 
     cleanup_sched(&sched);
     return 1;
