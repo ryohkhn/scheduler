@@ -5,12 +5,15 @@ import os
 import time
 import argparse
 
+DEBUG = 0
+
 nth_iterations = 2
 max_threads = os.cpu_count()
 output_index_time = 2
 output_stats_steal_succeeded_id = 3
 output_stats_steal_failed_id = 7
 output_stats_tasks_done_id = 10
+
 
 programs_names = [
     ("LIFO scheduler", "bench_lifo_quicksort"),
@@ -72,7 +75,8 @@ def launch_bench(results, results_avg, stats_avg):
                     res = float(prog_out[1 + output_stats_tasks_done_id + output_index_time])
                     program_bench_sum += res
                     results[count][i][j] = res
-                time.sleep(0.2)
+                if DEBUG:
+                    print(f"Done '{pair[0]}' with {i} threads at the {j}th iteration")
             average_time = round(program_bench_sum / nth_iterations, 6)
             stats_avg[count][i] = (int(stats_steal_succeeded / nth_iterations),
                                    int(stats_steal_failed / nth_iterations),
@@ -110,6 +114,9 @@ def generate_images(results, results_avg):
     for i, avg in enumerate(results_avg):
         plt.plot(avg, label=programs_names[i][0], linewidth=2)
 
+    plt.xlabel('Threads')
+    plt.ylabel('Time in seconds')
+    plt.title("Combined schedulers\n(average at " + str(nth_iterations + 1) + " iterations)")
     plt.legend()
     plt.savefig('combined_schedulers.png')
     plt.close()
@@ -153,6 +160,7 @@ if __name__ == "__main__":
     group.add_argument('-s', action="store_true", help="Run in serial (wont work with graphs)")
     parser.add_argument('-g', action="store_true", help="Generate image graphs")
     parser.add_argument('-i', type=int, help="Number of iterations for each benchmark")
+    parser.add_argument('-D', action="store_true", help="Debug mode")
     args = parser.parse_args()
 
     if args.t != None:
@@ -162,6 +170,8 @@ if __name__ == "__main__":
         max_threads = 0
     if args.i:
         nth_iterations = args.i
+    if args.D:
+        DEBUG = 1
     compile_files()
     res = [[[None for _ in range(nth_iterations)] for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
     res_avg = [[None for _ in range(max_threads + 1)] for _ in range(len(programs_names))]
